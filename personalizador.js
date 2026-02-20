@@ -1,210 +1,339 @@
-console.log("🚀 Customily V7.0: PRECISION SLIDERS CONTROL");
+console.log("🚀 Customily V8.0: CONTEXT-AWARE & PINPOINT ACCURACY");
 
-// --- ESTILOS ---
+// --- ESTILOS NATIVOS ---
 const styles = `
-    .custom-section-wrapper { display: block !important; width: 100% !important; margin: 20px 0 !important; clear: both !important; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    /* Contenedor Principal: Limpio y aislado */
+    .custom-section-wrapper { 
+        display: block !important; 
+        width: 100% !important; 
+        margin: 15px 0 25px 0 !important; 
+        clear: both !important; 
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        position: relative; z-index: 10;
+        background: #fff;
+    }
+
+    /* Botón Activador Estilo Acordeón */
     .custom-trigger-btn { 
-        width: 100%; padding: 12px 15px; background: #fff; border: 1px solid #000; color: #000; 
+        width: 100%; padding: 15px; 
+        background: #fdfdfd; 
+        border: 1px solid #e0e0e0; border-radius: 4px;
+        color: #333; 
         font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; 
         cursor: pointer; display: flex; justify-content: space-between; align-items: center; 
-        transition: all 0.2s;
+        transition: all 0.2s ease;
     }
-    .custom-trigger-btn:hover { background: #000; color: #fff; }
-    .custom-trigger-btn.active { background: #000; color: #fff; border-bottom: none; }
+    .custom-trigger-btn:hover { background: #f4f4f4; border-color: #ccc; }
+    .custom-trigger-btn.active { background: #222; color: #fff; border-color: #222; }
 
-    .custom-panel { display: none; padding: 20px; background: #fff; border: 1px solid #000; border-top: none; box-sizing: border-box; }
-    .custom-panel.visible { display: block; animation: fadeIn 0.3s; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    /* Panel de Control */
+    .custom-panel { 
+        display: none; padding: 20px; 
+        background: #fff; 
+        border: 1px solid #e0e0e0; border-top: none; 
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+    }
+    .custom-panel.visible { display: block; animation: slideDown 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .custom-label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; color: #555; margin-top: 10px; }
-    .custom-label:first-child { margin-top: 0; }
+    /* Inputs y Controles */
+    .custom-label { display: block; font-size: 11px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; color: #999; letter-spacing: 0.5px; }
     
-    .custom-input { width: 100%; padding: 8px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
+    .custom-input { 
+        width: 100%; padding: 10px; 
+        border: 1px solid #ddd; border-radius: 3px;
+        font-size: 14px; color: #333;
+        box-sizing: border-box; margin-bottom: 15px;
+        transition: border 0.2s;
+    }
+    .custom-input:focus { border-color: #000; outline: none; }
+
+    .custom-row { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
     
-    .custom-row { display: flex; gap: 10px; align-items: center; }
-    .custom-color { width: 40px; height: 38px; padding: 0; border: 1px solid #ccc; background: none; cursor: pointer; }
-    .custom-select { flex: 1; padding: 8px; border: 1px solid #ccc; background: #fff; font-size: 14px; }
+    .custom-color-input { 
+        -webkit-appearance: none; border: none; width: 40px; height: 40px; padding: 0; 
+        border-radius: 50%; overflow: hidden; cursor: pointer; box-shadow: 0 0 0 1px #ddd;
+    }
+    .custom-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+    .custom-color-input::-webkit-color-swatch { border: none; }
+    
+    .custom-select { 
+        flex: 1; padding: 10px; 
+        border: 1px solid #ddd; border-radius: 3px; 
+        background-color: #fff; font-size: 14px; cursor: pointer; 
+    }
 
-    /* SLIDERS */
-    .custom-range-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-    .custom-range-icon { font-size: 14px; width: 20px; text-align: center; }
-    .custom-range { flex: 1; cursor: pointer; height: 4px; background: #ddd; -webkit-appearance: none; border-radius: 2px; }
-    .custom-range::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #000; border-radius: 50%; cursor: pointer; }
+    /* SLIDERS DE PRECISIÓN */
+    .custom-slider-group { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .custom-icon { font-size: 16px; color: #ccc; width: 20px; text-align: center; }
+    .custom-slider { 
+        flex: 1; -webkit-appearance: none; height: 4px; background: #eee; border-radius: 2px; cursor: pointer; 
+    }
+    .custom-slider::-webkit-slider-thumb { 
+        -webkit-appearance: none; width: 14px; height: 14px; 
+        background: #000; border-radius: 50%; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+        transition: transform 0.1s;
+    }
+    .custom-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
-    /* OVERLAY */
-    .custom-overlay-container { position: relative !important; }
-    .custom-text-overlay {
-        position: absolute; pointer-events: none !important; /* Click-through */
-        white-space: nowrap; font-weight: bold;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    /* OVERLAY VISUAL SOBRE IMAGEN */
+    .custom-overlay-host { position: relative !important; }
+    .custom-text-layer {
+        position: absolute; 
+        pointer-events: none; /* Intocable, deja pasar clicks al zoom/slider */
+        top: 50%; left: 50%;
         transform: translate(-50%, -50%);
-        font-size: 24px; z-index: 2147483647; /* Máximo Z posible */
-        width: auto; height: auto;
+        white-space: nowrap; 
+        font-weight: 700;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 1000; /* Encima de todo */
+        font-size: 24px;
+        opacity: 0; transition: opacity 0.2s ease;
     }
-    @media (min-width: 1024px) { .custom-text-overlay { font-size: 32px; } }
+    .custom-text-layer.active { opacity: 1; }
+    
+    /* Responsive Ajuste */
+    @media (min-width: 768px) { .custom-text-layer { font-size: 30vw; } } /* Dinámico base */
+    @media (min-width: 1024px) { .custom-text-layer { font-size: 36px; } } /* Fijo en desk */
 `;
+
 const styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
-const FONTS = [{ name: 'Moderna', val: 'Helvetica, Arial, sans-serif' }, { name: 'Elegante', val: 'Georgia, serif' }, { name: 'Cursiva', val: 'Brush Script MT, cursive' }, { name: 'Máquina', val: 'Courier New, monospace' }, { name: 'Impacto', val: 'Impact, sans-serif' }];
+const FONTS = [
+    { name: 'Moderna', val: 'Helvetica, Arial, sans-serif' },
+    { name: 'Clásica', val: 'Times New Roman, serif' },
+    { name: 'Manuscrita', val: 'Brush Script MT, cursive' },
+    { name: 'Urbana', val: 'Courier New, monospace' },
+    { name: 'Fuerte', val: 'Impact, sans-serif' }
+];
 
+// --- 1. INITIALIZER INTELIGENTE ---
 function init() {
-    if (!window.location.pathname.includes('/productos/')) return;
+    // Busca formularios candidatos
     const forms = document.querySelectorAll('form[action*="/cart/add"], .js-product-form');
-    forms.forEach(inject);
-}
-
-function inject(form) {
-    if (form.dataset.cv70) return;
-    form.dataset.cv70 = "true";
-
-    const state = { active: false, text: "", color: "#ffffff", font: FONTS[0].val, posX: 50, posY: 50 };
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'custom-section-wrapper';
-
-    const trigger = document.createElement('div');
-    trigger.className = 'custom-trigger-btn';
-    trigger.innerHTML = '<span>✎ Personalizar (+ $0)</span> <span>+</span>';
-
-    const panel = document.createElement('div');
-    panel.className = 'custom-panel';
-
-    // 1. TEXTO
-    panel.innerHTML += '<span class="custom-label">Tu Texto:</span>';
-    const input = document.createElement('input');
-    input.className = 'custom-input';
-    input.placeholder = 'Escribe nombre o iniciales...';
-    input.addEventListener('input', e => {
-        state.text = e.target.value;
-        updateAll(form, state);
-    });
-    panel.appendChild(input);
-
-    // 2. ESTILO
-    panel.innerHTML += '<span class="custom-label">Estilo:</span>';
-    const row = document.createElement('div'); row.className = 'custom-row';
-    const colorP = document.createElement('input'); colorP.type = 'color'; colorP.className = 'custom-color'; colorP.value = state.color;
-    colorP.addEventListener('input', e => { state.color = e.target.value; updateAll(form, state); });
-    const fontS = document.createElement('select'); fontS.className = 'custom-select';
-    FONTS.forEach(f => { const o = document.createElement('option'); o.value = f.val; o.innerText = f.name; fontS.appendChild(o); });
-    fontS.addEventListener('change', e => { state.font = e.target.value; updateAll(form, state); });
-    row.appendChild(colorP); row.appendChild(fontS);
-    panel.appendChild(row);
-
-    // 3. POSICIÓN (SLIDERS) - ¡La forma fácil!
-    panel.innerHTML += '<span class="custom-label">Ubicación:</span>';
-
-    // X
-    const wrapX = document.createElement('div'); wrapX.className = 'custom-range-wrapper';
-    wrapX.innerHTML = '<span class="custom-range-icon">↔</span>';
-    const rangeX = document.createElement('input'); rangeX.type = 'range'; rangeX.min = 0; rangeX.max = 100; rangeX.value = 50; rangeX.className = 'custom-range';
-    rangeX.addEventListener('input', e => { state.posX = e.target.value; updateAll(form, state); });
-    wrapX.appendChild(rangeX); panel.appendChild(wrapX);
-
-    // Y
-    const wrapY = document.createElement('div'); wrapY.className = 'custom-range-wrapper';
-    wrapY.innerHTML = '<span class="custom-range-icon">↕</span>';
-    const rangeY = document.createElement('input'); rangeY.type = 'range'; rangeY.min = 0; rangeY.max = 100; rangeY.value = 50; rangeY.className = 'custom-range';
-    rangeY.addEventListener('input', e => { state.posY = e.target.value; updateAll(form, state); });
-    wrapY.appendChild(rangeY); panel.appendChild(wrapY);
-
-    wrapper.appendChild(trigger);
-    wrapper.appendChild(panel);
-
-    // LOGICA TOGGLE
-    trigger.onclick = () => {
-        state.active = !state.active;
-        panel.classList.toggle('visible');
-        trigger.classList.toggle('active');
-        trigger.innerHTML = state.active ? '<span>Personalizando...</span> <span>-</span>' : '<span>✎ Personalizar (+ $0)</span> <span>+</span>';
-        if (state.active && !state.text) updateAll(form, state, "TU TEXTO"); else updateAll(form, state);
-    };
-
-    // INSERCIÓN (Antes del form para seguridad layout)
-    const parent = form.parentElement;
-    if (parent) parent.insertBefore(wrapper, form);
-    else form.insertBefore(wrapper, form.firstChild);
-
-    // SUBMIT HANDLER (Native + Sync)
-    const btn = form.querySelector('.js-addtocart, input[type="submit"], button[type="submit"]');
-    if (btn) setupNativeButton(form, btn, state);
-}
-
-// Actualiza Overlay + Hidden Inputs al mismo tiempo
-function updateAll(form, state, placeholder = "") {
-    // 1. Update Preview Overlay
-    updateOverlay(form, state, placeholder);
-
-    // 2. Update Hidden Inputs (Real-time sync)
-    const val = `${state.text} | Color: ${state.color} | Fuente: ${state.font.split(',')[0]} | Pos: ${state.posX}%,${state.posY}%`;
-
-    let i1 = form.querySelector('input[name="properties[Personalizacion]"]');
-    if (!i1) { i1 = document.createElement('input'); i1.type = 'hidden'; i1.name = 'properties[Personalizacion]'; form.appendChild(i1); }
-    if (state.active && state.text) i1.value = val; else i1.value = ""; // Limpiar si no activo
-
-    let i2 = form.querySelector('input[name="comment"]');
-    if (!i2) { i2 = document.createElement('input'); i2.type = 'hidden'; i2.name = 'comment'; form.appendChild(i2); }
-    if (state.active && state.text) i2.value = val; else i2.value = "";
-}
-
-function updateOverlay(form, state, placeholder = "") {
-    // Buscamos MÚLTIPLES imágenes grandes
-    let container = form.closest('.js-product-container, .product-container') || document.body;
-    const images = Array.from(container.querySelectorAll('img'));
-
-    // Inyectamos el texto en TODAS las imagenes candidatas para que al cambiar de slide se vea
-    images.forEach(img => {
-        if (img.offsetParent && img.width > 250) {
-            const p = img.parentElement;
-            if (getComputedStyle(p).position === 'static') p.style.position = 'relative';
-            p.classList.add('custom-overlay-container');
-
-            let txt = p.querySelector('.custom-text-overlay');
-            if (!txt) {
-                txt = document.createElement('div');
-                txt.className = 'custom-text-overlay';
-                p.appendChild(txt);
-            }
-
-            const val = state.text || placeholder;
-            txt.innerText = val;
-            txt.style.color = state.color;
-            txt.style.fontFamily = state.font;
-            txt.style.display = (state.active && val) ? 'block' : 'none';
-            txt.style.left = state.posX + '%';
-            txt.style.top = state.posY + '%';
+    forms.forEach(form => {
+        // FILTRO DE CONTEXTO ESTRICTO
+        if (isEligibleContext(form)) {
+            mountCustomizer(form);
         }
     });
 }
 
-function setupNativeButton(form, btn, state) {
-    // Clonamos botón para remover eventos legacy
+// DETERMINA SI EL FORMULARIO MERECE EL PERSONALIZADOR
+function isEligibleContext(form) {
+    // 1. Si ya lo tiene, no repetir
+    if (form.dataset.customilyV8) return false;
+
+    // 2. Buscar ancestros clave
+    const parentContainer = form.closest(
+        '.product-detail, #product-container, .js-product-detail, .modal, .quick-shop, .fancybox-content'
+    );
+
+    // 3. Buscar ancestros PROHIBIDOS (Tarjetas de listado)
+    const isListingCard = form.closest(
+        '.item, .product-item, .card, .product-grid-item, .span3, .span4, .col-item'
+    );
+
+    // REGLA DE ORO: Debe estar en un contenedor de detalle Y NO en una tarjeta de lista
+    if (parentContainer && !isListingCard) return true;
+
+    return false;
+}
+
+function mountCustomizer(form) {
+    form.dataset.customilyV8 = "true";
+
+    const state = { active: false, text: "", color: "#ffffff", font: FONTS[0].val, posX: 50, posY: 50 };
+
+    // CONTAINER
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-section-wrapper';
+
+    // TRIGGER
+    const trigger = document.createElement('div');
+    trigger.className = 'custom-trigger-btn';
+    trigger.innerHTML = '<span>✨ Personalizar (+ $0)</span> <span>User Studio</span>';
+
+    // PANEL
+    const panel = document.createElement('div');
+    panel.className = 'custom-panel';
+
+    // UI ELEMENTS
+    // Text
+    panel.innerHTML += '<label class="custom-label">Tu Texto o Iniciales</label>';
+    const input = document.createElement('input');
+    input.className = 'custom-input';
+    input.placeholder = 'Escribe aquí...';
+    input.oninput = (e) => { state.text = e.target.value; updateSystem(form, state); };
+    panel.appendChild(input);
+
+    // Style
+    panel.innerHTML += '<label class="custom-label">Estilo y Color</label>';
+    const row = document.createElement('div'); row.className = 'custom-row';
+    const colorP = document.createElement('input'); colorP.type = 'color'; colorP.className = 'custom-color-input'; colorP.value = state.color;
+    colorP.oninput = (e) => { state.color = e.target.value; updateSystem(form, state); };
+    const fontS = document.createElement('select'); fontS.className = 'custom-select';
+    FONTS.forEach(f => {
+        const o = document.createElement('option'); o.value = f.val; o.innerText = f.name; fontS.appendChild(o);
+    });
+    fontS.onchange = (e) => { state.font = e.target.value; updateSystem(form, state); };
+    row.appendChild(colorP); row.appendChild(fontS);
+    panel.appendChild(row);
+
+    // Positioning Sliders
+    panel.innerHTML += '<label class="custom-label">Posición Exacta</label>';
+
+    // Sliders
+    const createSlider = (icon, prop) => {
+        const g = document.createElement('div'); g.className = 'custom-slider-group';
+        g.innerHTML = `<span class="custom-icon">${icon}</span>`;
+        const s = document.createElement('input'); s.type = 'range'; s.min = 0; s.max = 100; s.value = 50; s.className = 'custom-slider';
+        s.oninput = (e) => { state[prop] = e.target.value; updateSystem(form, state); };
+        g.appendChild(s);
+        return g;
+    };
+
+    panel.appendChild(createSlider('↔', 'posX'));
+    panel.appendChild(createSlider('↕', 'posY'));
+
+    // Inject
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(panel);
+
+    // Toggle Logic
+    trigger.onclick = () => {
+        state.active = !state.active;
+        panel.classList.toggle('visible');
+        trigger.classList.toggle('active');
+        if (state.active && !state.text) updateSystem(form, state, "TU TEXTO"); else updateSystem(form, state);
+    };
+
+    // --- PLACEMENT STRATEGY ---
+    // Intentamos colocarlo ANTES del formulario para salir del flow de la tarjeta
+    // Pero dentro del contenedor de detalles
+    if (form.parentElement) form.parentElement.insertBefore(wrapper, form);
+    else form.insertBefore(wrapper, form.firstChild);
+
+    // NATIVE SUBMIT INTERCEPT
+    setupSubmit(form, state);
+}
+
+function updateSystem(form, state, placeholder = "") {
+    // 1. UPDATE VISUAL OVERLAY
+    updateVisuals(form, state, placeholder);
+
+    // 2. UPDATE HIDDEN FIELDS (Sync Realtime)
+    const dataString = `${state.text} | Color: ${state.color} | Fuente: ${state.font.split(',')[0]} | Pos: ${state.posX}%,${state.posY}%`;
+
+    // Property Field
+    let propField = form.querySelector('input[name="properties[Personalizacion]"]');
+    if (!propField) {
+        propField = document.createElement('input'); propField.type = 'hidden'; propField.name = 'properties[Personalizacion]';
+        form.appendChild(propField);
+    }
+
+    // Comment Field (Backup)
+    let noteField = form.querySelector('input[name="comment"]');
+    if (!noteField) {
+        noteField = document.createElement('input'); noteField.type = 'hidden'; noteField.name = 'comment';
+        form.appendChild(noteField);
+    }
+
+    if (state.active && state.text) {
+        propField.value = dataString;
+        noteField.value = dataString;
+    } else {
+        propField.value = "";
+        noteField.value = "";
+    }
+}
+
+function updateVisuals(form, state, placeholder = "") {
+    // ENCONTRAR LA IMAGEN CORRECTA
+    // Subimos hasta encontrar el contenedor del producto
+    const container = form.closest('.product-detail, #product-container, .quick-shop-modal, .js-product-detail') || document.body;
+
+    // Buscamos todas las imágenes GRANDES visibles
+    const images = Array.from(container.querySelectorAll('img'));
+
+    images.forEach(img => {
+        // Criterio de "Imagen Principal": Grande y visible
+        if (img.width > 200 && img.offsetParent !== null) {
+
+            // Contenedor Inmediato (El que tiene position:relative a menudo)
+            let host = img.parentElement;
+
+            // Fix para contenedores con overflow hidden o position static
+            if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+            host.classList.add('custom-overlay-host');
+
+            // Buscar o Crear Capa de Texto
+            let layer = host.querySelector('.custom-text-layer');
+            if (!layer) {
+                layer = document.createElement('div');
+                layer.className = 'custom-text-layer';
+                host.appendChild(layer);
+            }
+
+            // Aplicar Estilos
+            const content = state.text || placeholder;
+            layer.innerText = content;
+            layer.style.color = state.color;
+            layer.style.fontFamily = state.font;
+            layer.style.left = state.posX + '%';
+            layer.style.top = state.posY + '%';
+
+            if (state.active && content) layer.classList.add('active');
+            else layer.classList.remove('active');
+        }
+    });
+}
+
+function setupSubmit(form, state) {
+    const btn = form.querySelector('.js-addtocart, input[type="submit"], button[type="submit"]');
+    if (!btn) return;
+
+    // Clonar para limpiar eventos sucios anteriores
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
 
     newBtn.addEventListener('click', (e) => {
         if (state.active && state.text) {
             e.preventDefault();
-            // Feedback Visual
-            const originalText = newBtn.innerText;
-            newBtn.innerText = "Guardando...";
+            // Feedback UI
+            newBtn.innerText = "Agregando Personalización...";
+            newBtn.style.opacity = 0.8;
             newBtn.disabled = true;
-            newBtn.style.opacity = "0.7";
 
-            // Los inputs ya están actualizados por updateAll(), así que mandamos submit
+            // Submit Nativo (Los inputs hidden ya están sincronizados)
             setTimeout(() => {
                 HTMLFormElement.prototype.submit.call(form);
-            }, 300); // Pequeño delay dramático para asegurar DOM update
+            }, 200);
         } else {
-            // Flujo normal
+            // Passthrough normal
             e.preventDefault();
             HTMLFormElement.prototype.submit.call(form);
         }
     });
 }
 
+// --- OBSERVER PARA QUICK SHOPS ---
+// Vigila si se abren modales nuevos para inyectar el script al vuelo
+const observer = new MutationObserver((mutations) => {
+    let shouldInit = false;
+    mutations.forEach(m => {
+        if (m.addedNodes.length > 0) shouldInit = true;
+    });
+    if (shouldInit) init();
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
+
+// BOOT
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
-setInterval(init, 2000);
+setInterval(init, 3000); // Polling de seguridad (suave)
