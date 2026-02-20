@@ -15,6 +15,7 @@ function App() {
     const [discount, setDiscount] = useState(10);           // % descuento
     const [label, setLabel] = useState('');                 // Nombre del pack
     const [badge, setBadge] = useState('');                 // Ej: "¡Más Vendido!"
+    const [coupon, setCoupon] = useState('');               // Código de cupón (opcional)
     const [editingComboId, setEditingComboId] = useState(null);
     const [activeTab, setActiveTab] = useState('trigger');  // 'trigger' | 'combo'
 
@@ -35,6 +36,7 @@ function App() {
         setDiscount(10);
         setLabel('');
         setBadge('');
+        setCoupon('');
         setEditingComboId(null);
         setActiveTab('trigger');
     };
@@ -61,6 +63,7 @@ function App() {
             id: editingComboId || `combo_${Date.now()}`,
             label: label || `Pack ${triggerProds[0].name}`,
             badge: badge,
+            coupon: coupon,
             discount: parseInt(discount),
             triggers: triggerProds.map(p => p.id),
             products: comboProds.map(p => ({
@@ -93,6 +96,7 @@ function App() {
         setEditingComboId(combo.id);
         setLabel(combo.label || '');
         setBadge(combo.badge || '');
+        setCoupon(combo.coupon || '');
         setDiscount(combo.discount || 10);
         // Restaurar los productos trigger de la lista
         const resolvedTriggers = combo.triggers
@@ -249,6 +253,15 @@ function App() {
                                     onChange={e => setBadge(e.target.value)}
                                 />
                             </div>
+                        </div>
+                        <div className="config-row">
+                            <label>Código de Cupón (auto-aplicado al checkout)</label>
+                            <input
+                                type="text"
+                                placeholder="Ej: PACK10, BAGS35 — déjalo vacío si usás Promociones nativas"
+                                value={coupon}
+                                onChange={e => setCoupon(e.target.value.toUpperCase())}
+                            />
                         </div>
                     </div>
 

@@ -1,4 +1,3 @@
-// SalesBooster V8.0 — Fri Feb 20 01:32:41 -03 2026
 // SalesBooster V8.0 — Multi-Product | Discount Engine | Smart Logic
 // https://github.com/direchentt/customily
 
@@ -92,6 +91,8 @@
         widget.className = 'sb-widget';
         widget.id = 'sb-combo-widget';
 
+        const couponCode = combo.coupon || null;
+
         widget.innerHTML = `
             ${combo.badge ? `<div class="sb-badge">${combo.badge}</div>` : ''}
             <div class="sb-title">${combo.label || '🔥 MEJOR JUNTOS'}</div>
@@ -130,12 +131,12 @@
             </div>
 
             <button class="sb-cta" id="sb-cta-btn">
-                <span class="sb-cta-text">🛒 AGREGAR PACK AL CARRITO</span>
-                <span class="sb-cta-loading" style="display:none">⏳ Agregando...</span>
+                <span class="sb-cta-text">🛒 AGREGAR PACK Y PAGAR CON ${discount}% OFF</span>
+                <span class="sb-cta-loading" style="display:none">⏳ Preparando pack...</span>
             </button>
-            <div class="sb-disclaimer">Ambos productos se agregan al carrito.</div>
+            <div class="sb-disclaimer">${couponCode ? `Descuento aplicado automáticamente al checkout.` : 'Ambos productos se agregan al carrito.'}</div>
             <div class="sb-success" style="display:none">
-                ✅ ¡Pack agregado! — <a href="/cart">Ver carrito →</a>
+                ✅ ¡Pack agregado! Redirigiendo al checkout...
             </div>
         `;
 
@@ -156,14 +157,14 @@
         // CTA Handler
         widget.querySelector('#sb-cta-btn').addEventListener('click', function (e) {
             e.preventDefault();
-            addComboToCart(main, products, widget);
+            addComboToCart(main, products, widget, combo);
         });
 
         injectStyles();
     }
 
     // ─── ADD TO CART ───
-    async function addComboToCart(main, partners, widget) {
+    async function addComboToCart(main, partners, widget, combo) {
         const btn = widget.querySelector('#sb-cta-btn');
         const textEl = widget.querySelector('.sb-cta-text');
         const loadEl = widget.querySelector('.sb-cta-loading');
@@ -175,46 +176,62 @@
         loadEl.style.display = 'inline';
 
         try {
-            // Leer variant_id más reciente (puede cambiar si el usuario cambia variante)
+            // Leer variant_id actualizado
             const variantInput = document.querySelector('input[name="variant_id"], select[name="variant_id"]');
             const variantId = variantInput ? variantInput.value : main.variantId;
 
-            // 1. Agregar producto principal
+            // POST producto principal — redirect:'manual' evita el error por 302
             const payload1 = new URLSearchParams({ add_to_cart: main.id, quantity: 1 });
             if (variantId) payload1.append('variant_id', variantId);
             await fetch(CONFIG.cartEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: payload1.toString()
+                body: payload1.toString(),
+                redirect: 'manual'
             });
 
-            // 2. Agregar productos del pack
+            // POST cada producto del pack
             for (const p of partners) {
                 const payload = new URLSearchParams({ add_to_cart: p.id, quantity: 1 });
                 await fetch(CONFIG.cartEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: payload.toString()
+                    body: payload.toString(),
+                    redirect: 'manual'
                 });
             }
 
-            // Éxito
+            // Éxito visual
             loadEl.style.display = 'none';
             btn.style.display = 'none';
             disclaimer.style.display = 'none';
             successEl.style.display = 'block';
 
-            // Intentar abrir carrito lateral nativo
-            const cartTrigger = document.querySelector(CONFIG.cartTriggerSelector);
-            if (cartTrigger) {
-                setTimeout(() => cartTrigger.click(), 400);
-            }
+            // Redirigir — si tiene cupón (del campo discount del combo), aplicarlo
+            // El admin puede guardar un código de cupón por combo. Si no, ir al carrito.
+            const coupon = combo.coupon || null;
+            setTimeout(() => {
+                if (coupon) {
+                    // Aplicar cupón automáticamente en el checkout
+                    window.location.href = `/checkout/v3/start?coupon=${encodeURIComponent(coupon)}`;
+                } else {
+                    // Sin cupón: intentar abrir carrito lateral, sino ir a /cart
+                    const cartTrigger = document.querySelector(CONFIG.cartTriggerSelector);
+                    if (cartTrigger) {
+                        cartTrigger.click();
+                    } else {
+                        window.location.href = '/cart';
+                    }
+                }
+            }, 600);
 
         } catch (e) {
-            console.error('[SalesBooster] Cart Error:', e);
+            // Las respuestas opaque (redirect manual) no son errores reales
+            // Solo mostramos error si es una excepción de red real
+            console.warn('[SalesBooster] Cart warning (puede ser normal):', e.message);
             loadEl.style.display = 'none';
             textEl.style.display = 'inline';
-            textEl.textContent = '⚠️ Error al agregar. Intenta de nuevo.';
+            textEl.textContent = '⚠️ Toca de nuevo si no se agregó.';
             btn.disabled = false;
         }
     }
