@@ -1,123 +1,162 @@
-console.log("🚀 Customily V6.1: FIXED DRAG & PLACEMENT");
+console.log("🚀 Customily V6.2: LAYOUT FIX + FULL WIDTH");
 
-// --- ESTILOS MEJORADOS ---
+// --- ESTILOS DE RESET ---
 const styles = `
-    .custom-trigger-container { margin-bottom: 15px; width: 100%; }
+    /* Contenedor Principal: Ocupa todo el ancho, bloque limpio */
+    .custom-section-wrapper {
+        width: 100% !important;
+        display: block !important;
+        margin-bottom: 20px !important;
+        clear: both !important;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Botón Activador */
     .custom-trigger-btn {
-        width: 100%; padding: 12px; 
-        background: transparent; border: 1px solid #111; color: #111;
-        border-radius: 0; /* Más minimalista, cuadrado */
-        font-weight: 700; cursor: pointer; display: flex;
-        align-items: center; justify-content: center; gap: 8px; 
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        text-transform: uppercase; letter-spacing: 1px; font-size: 12px;
-        transition: all 0.2s ease;
+        width: 100%; 
+        padding: 15px; 
+        background: #f8f8f8; 
+        border: 1px solid #ddd; 
+        color: #333;
+        font-weight: 700; 
+        font-size: 13px;
+        text-transform: uppercase; 
+        letter-spacing: 1px;
+        cursor: pointer; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; /* Flecha a la derecha */
+        transition: all 0.2s;
     }
-    .custom-trigger-btn:hover { background: #f0f0f0; }
-    .custom-trigger-btn.active { background: #111; color: #fff; border-color: #111; }
+    .custom-trigger-btn:hover { background: #eee; }
+    .custom-trigger-btn.active { background: #222; color: #fff; border-color: #222; }
+    .custom-trigger-icon { font-size: 10px; transition: transform 0.3s; }
+    .custom-trigger-btn.active .custom-trigger-icon { transform: rotate(180deg); }
 
+    /* Panel Desplegable */
     .custom-panel { 
-        display: none; padding: 20px; background: #fff; border: 1px solid #e0e0e0; 
-        margin-top: -1px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        display: none; 
+        background: #fff; 
+        border: 1px solid #ddd; 
+        border-top: none;
+        padding: 20px; 
+        box-sizing: border-box; /* Importante para no salirse */
     }
-    .custom-panel.visible { display: block; animation: slideDown 0.3s ease-out; }
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    .custom-panel.visible { display: block; animation: slideIn 0.2s ease-out; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-    .custom-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
-    .custom-label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #333; width: 60px; }
-    .custom-input { flex: 1; padding: 8px; border: 1px solid #ccc; font-size: 14px; outline: none; }
-    .custom-input:focus { border-color: #000; }
-    .custom-color-picker { width: 35px; height: 35px; border: none; padding: 0; background: none; cursor: pointer; border-radius: 50%; box-shadow: 0 0 0 1px #ddd; }
-    .custom-font-select { flex: 1; padding: 8px; border: 1px solid #ccc; background: #fff; font-size: 14px; cursor: pointer; }
+    /* Inputs y Controles al 100% */
+    .custom-form-group { margin-bottom: 15px; }
+    .custom-label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; color: #666; }
+    
+    .custom-input-full { 
+        width: 100%; 
+        padding: 10px; 
+        border: 1px solid #ccc; 
+        border-radius: 4px;
+        font-size: 15px; 
+        box-sizing: border-box; 
+    }
+    
+    .custom-options-grid { display: flex; gap: 10px; align-items: center; }
+    .custom-color-picker { 
+        width: 40px; height: 40px; 
+        border: 1px solid #ddd; padding: 2px; 
+        background: #fff; cursor: pointer; border-radius: 4px; 
+    }
+    .custom-select-full { 
+        flex: 1; 
+        padding: 10px; 
+        border: 1px solid #ccc; 
+        border-radius: 4px; 
+        background: #fff; 
+        font-size: 14px; 
+    }
 
-    /* OVERLAY ESTILO DRAGGEABLE (SOLIDO) */
-    .custom-overlay-container { position: relative !important; touch-action: none; }
+    /* DRAGGABLE TEXT */
+    .custom-overlay-container { position: relative !important; }
     .custom-draggable-text {
         position: absolute;
-        cursor: move; /* Cursor explícito de movimiento */
-        cursor: grab;
-        user-select: none; /* Crucial: No seleccionar texto */
-        -webkit-user-select: none;
-        white-space: nowrap;
-        font-weight: bold;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.4);
-        padding: 10px; /* Área de agarre más grande */
-        border: 1px dashed rgba(255,255,255,0.5); /* Borde sutil siempre visible */
-        transform-origin: center center;
+        cursor: move; cursor: grab;
+        user-select: none; -webkit-user-select: none;
+        white-space: nowrap; font-weight: bold;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        padding: 10px;
+        border: 1px dashed rgba(255,255,255,0.4);
         transform: translate(-50%, -50%);
-        font-size: 30px;
-        z-index: 9999; /* ENCIMA DE TODO (Zoom, Lupa, etc) */
-        pointer-events: auto !important; /* Forzar eventos */
+        font-size: 26px; z-index: 9999;
+        pointer-events: auto;
     }
-    .custom-draggable-text:active, .custom-draggable-text.dragging {
-        cursor: grabbing;
-        border: 2px dashed #fff;
-        background: rgba(0,0,0,0.2);
-    }
-    @media (max-width: 768px) { .custom-draggable-text { font-size: 20px; } }
+    .custom-draggable-text:active { cursor: grabbing; border: 1px solid #fff; background: rgba(0,0,0,0.1); }
 `;
 const styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
 const FONTS = [
-    { name: 'Moderna', val: 'Helvetica, Arial, sans-serif' },
-    { name: 'Elegante', val: 'Georgia, serif' },
-    { name: 'Cursiva', val: 'Brush Script MT, cursive' },
-    { name: 'Futurista', val: 'Courier New, monospace' },
-    { name: 'Impacto', val: 'Impact, sans-serif' }
+    { name: 'Moderna (Sans)', val: 'Helvetica, Arial, sans-serif' },
+    { name: 'Elegante (Serif)', val: 'Georgia, serif' },
+    { name: 'Cursiva (Script)', val: 'Brush Script MT, cursive' },
+    { name: 'Máquina (Mono)', val: 'Courier New, monospace' },
+    { name: 'Impacto (Bold)', val: 'Impact, sans-serif' }
 ];
 
 function init() {
     const forms = document.querySelectorAll('form[action*="/cart/add"], .js-product-form');
-    if (forms.length) forms.forEach(inject);
+    forms.forEach(inject);
 }
 
 function inject(form) {
-    if (form.dataset.customilyV61) return;
-    form.dataset.customilyV61 = "true";
+    if (form.dataset.cv62) return;
+    form.dataset.cv62 = "true";
 
     const state = { active: false, text: "", color: "#ffffff", font: FONTS[0].val, posX: 50, posY: 50 };
 
-    // UI Structure
-    const mainWrapper = document.createElement('div');
-    mainWrapper.className = 'custom-trigger-container';
+    // ESTRUCTURA LIMPIA
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-section-wrapper';
 
+    // 1. Botón
     const trigger = document.createElement('div');
     trigger.className = 'custom-trigger-btn';
-    trigger.innerHTML = '<span>✎ Personalizar Diseño</span>';
+    trigger.innerHTML = '<span>✎ Personalizar (+ $0)</span> <span class="custom-trigger-icon">▼</span>';
 
+    // 2. Panel
     const panel = document.createElement('div');
     panel.className = 'custom-panel';
 
-    // Renglón 1: Texto
-    const r1 = document.createElement('div'); r1.className = 'custom-row';
-    r1.innerHTML = '<span class="custom-label">Texto</span>';
-    const input = document.createElement('input'); input.className = 'custom-input'; input.placeholder = 'Tu Nombre...';
+    // -- Controles --
+    // Texto
+    panel.innerHTML += '<div class="custom-form-group"><span class="custom-label">1. Escribe tu texto:</span></div>';
+    const input = document.createElement('input');
+    input.className = 'custom-input-full';
+    input.placeholder = 'Ej: TU NOMBRE';
     input.addEventListener('input', e => { state.text = e.target.value; updateOverlay(form, state); });
-    r1.appendChild(input);
-    panel.appendChild(r1);
+    panel.lastChild.appendChild(input);
 
-    // Renglón 2: Estilos
-    const r2 = document.createElement('div'); r2.className = 'custom-row';
-    r2.innerHTML = '<span class="custom-label">Estilo</span>';
+    // Estilos
+    panel.innerHTML += '<div class="custom-form-group" style="margin-top:15px"><span class="custom-label">2. Elige estilo:</span></div>';
+    const grid = document.createElement('div'); grid.className = 'custom-options-grid';
+
     const colorP = document.createElement('input'); colorP.type = 'color'; colorP.className = 'custom-color-picker'; colorP.value = state.color;
     colorP.addEventListener('input', e => { state.color = e.target.value; updateOverlay(form, state); });
-    const fontS = document.createElement('select'); fontS.className = 'custom-font-select';
+
+    const fontS = document.createElement('select'); fontS.className = 'custom-select-full';
     FONTS.forEach(f => { const o = document.createElement('option'); o.value = f.val; o.innerText = f.name; fontS.appendChild(o); });
     fontS.addEventListener('change', e => { state.font = e.target.value; updateOverlay(form, state); });
-    r2.appendChild(colorP); r2.appendChild(fontS);
-    panel.appendChild(r2);
 
-    // Hint
-    const hint = document.createElement('div');
-    hint.style.fontSize = "10px"; hint.style.color = "#888"; hint.style.textAlign = "center"; hint.style.marginTop = "5px";
-    hint.innerText = "Arrastra el texto para ubicarlo.";
-    panel.appendChild(hint);
+    grid.appendChild(colorP);
+    grid.appendChild(fontS);
+    panel.appendChild(grid);
 
-    mainWrapper.appendChild(trigger);
-    mainWrapper.appendChild(panel);
+    // Tip
+    panel.innerHTML += '<div style="margin-top:10px; font-size:11px; color:#888; text-align:center;">✋ Arrastra el texto sobre la imagen para moverlo</div>';
 
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(panel);
+
+    // Lógica Abrir
     trigger.onclick = () => {
         state.active = !state.active;
         panel.classList.toggle('visible');
@@ -126,139 +165,127 @@ function inject(form) {
         else updateOverlay(form, state);
     };
 
-    // --- POSICIONAMIENTO MEJORADO ---
-    // Buscamos insertar LO MAS ARRIBA posible antes del botón de compra
-    // Intentamos buscar el selector de cantidad o el contenedor de variantes
-    const target = form.querySelector('.js-quantity, .quantity, .product-variants, .js-product-variants') || form.querySelector('.js-addtocart, input[type="submit"]');
+    // --- UBICACIÓN ESTRATÉGICA ---
+    // Estrategia: Buscar el contenedor de Precios o Envío para insertarlo ANTES de los botones
+    // O buscar el primer elemento visible "product-variants"
+    const variants = form.querySelector('.js-product-variants, .product-variants');
+    const quantity = form.querySelector('.js-quantity, .quantity');
+    const submitBtn = form.querySelector('.js-addtocart, input[type="submit"]');
 
-    if (target) {
-        target.parentNode.insertBefore(mainWrapper, target);
-        // Setup final
-        const btn = form.querySelector('.js-addtocart, input[type="submit"], button[type="submit"]');
-        if (btn) setupNativeSubmit(form, btn, state);
+    // Prioridad de inserción:
+    // 1. Después de variantes (si existen)
+    // 2. Antes de cantidad (si existe)
+    // 3. Antes de botón comprar (último recurso)
+
+    if (variants) {
+        // Insertar después de variantes
+        variants.parentNode.insertBefore(wrapper, variants.nextSibling);
+    } else if (quantity) {
+        // Insertar antes de cantidad (para que quede arriba de la fila de compra)
+        // PERO verificamos si quantity está dentro de un contenedor 'row'
+        const qtyParent = quantity.parentElement;
+        if (qtyParent.classList.contains('row') || getComputedStyle(qtyParent).display === 'flex') {
+            // Si está en flex, insertamos ANTES del contenedor flex padre
+            qtyParent.parentNode.insertBefore(wrapper, qtyParent);
+        } else {
+            wrapper.style.marginBottom = "20px";
+            quantity.parentNode.insertBefore(wrapper, quantity);
+        }
+    } else if (submitBtn) {
+        // Fallback
+        submitBtn.parentNode.insertBefore(wrapper, submitBtn);
     } else {
-        form.insertBefore(mainWrapper, form.firstChild);
+        form.prepend(wrapper);
     }
+
+    if (submitBtn) setupNativeSubmit(form, submitBtn, state);
 }
 
 function updateOverlay(form, state, placeholder = "") {
-    const container = form.closest('.js-product-container, .product-container, body');
+    const container = document.querySelector('.js-product-container, .product-container') || document.body;
     const images = Array.from(container.querySelectorAll('img'));
     let bestImg = null; let maxArea = 0;
 
-    // Filtro estricto para encontrar la imagen REAL
     images.forEach(img => {
-        if (img.offsetParent && img.width > 150) { // Min 150px
+        if (img.offsetParent && img.width > 200) {
             const a = img.width * img.height;
             if (a > maxArea) { maxArea = a; bestImg = img; }
         }
     });
 
     if (bestImg) {
-        const wrapper = bestImg.parentElement;
-        wrapper.classList.add('custom-overlay-container');
-
-        let txt = wrapper.querySelector('.custom-draggable-text');
+        const p = bestImg.parentElement;
+        p.classList.add('custom-overlay-container');
+        let txt = p.querySelector('.custom-draggable-text');
         if (!txt) {
-            txt = document.createElement('div');
-            txt.className = 'custom-draggable-text';
-            wrapper.appendChild(txt);
-            makeDraggable(txt, wrapper, state);
+            txt = document.createElement('div'); txt.className = 'custom-draggable-text';
+            p.appendChild(txt);
+            makeDraggable(txt, p, state);
         }
-
-        const content = state.text || placeholder;
-        txt.innerText = content;
+        const val = state.text || placeholder;
+        txt.innerText = val;
         txt.style.color = state.color;
         txt.style.fontFamily = state.font;
-        txt.style.display = (state.active && content) ? 'block' : 'none';
-
-        // Mantener posición
+        txt.style.display = (state.active && val) ? 'block' : 'none';
         txt.style.left = state.posX + '%';
         txt.style.top = state.posY + '%';
     }
 }
 
-// LOGICA DRAG & DROP ROBUSTA (Global Events)
 function makeDraggable(el, container, state) {
     let isDragging = false;
     let startX, startY;
 
-    // INICIO
-    const start = (e) => {
-        e.preventDefault(); // Prevenir selección nativa o scroll
-        e.stopPropagation(); // Prevenir que el click pase al zoom de la imagen
+    const onStart = (e) => {
+        e.preventDefault(); e.stopPropagation();
         isDragging = true;
-        el.classList.add('dragging');
-
-        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-
+        const c = e.touches ? e.touches[0] : e;
         const rect = container.getBoundingClientRect();
 
-        // Calcular offset inicial relativo al centro del elemento
-        // Convertimos el porcentaje actual a pixeles para sincronizar
-        const currentLeftPx = (state.posX / 100) * rect.width;
-        const currentTopPx = (state.posY / 100) * rect.height;
-
-        // Guardamos donde hicimos click relativo al centro del container
-        // No necesitamos offset interno complejo porque transform translate centra el elemento
-        startX = clientX;
-        startY = clientY;
+        // Guardamos la posición inicial del puntero
+        startX = c.clientX;
+        startY = c.clientY;
     };
 
-    // MOVIMIENTO (En DOCUMENT para no perder el foco si salimos rápido)
-    const move = (e) => {
+    const onMove = (e) => {
         if (!isDragging) return;
-        e.preventDefault();
+        e.preventDefault(); // Stop scroll
+        const c = e.touches ? e.touches[0] : e;
 
-        const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+        const deltaX = c.clientX - startX;
+        const deltaY = c.clientY - startY;
 
         const rect = container.getBoundingClientRect();
 
-        // Delta de movimiento
-        const deltaX = clientX - startX;
-        const deltaY = clientY - startY;
+        // Posiciòn actual en px
+        const curX = (state.posX / 100) * rect.width;
+        const curY = (state.posY / 100) * rect.height;
 
-        // Nueva posición en Pixeles
-        const currentLeftPx = (state.posX / 100) * rect.width;
-        const currentTopPx = (state.posY / 100) * rect.height;
+        let newX = curX + deltaX;
+        let newY = curY + deltaY;
 
-        let newLeftPx = currentLeftPx + deltaX;
-        let newTopPx = currentTopPx + deltaY;
-
-        // Convertir a % y Clamp (0-100)
-        let pctX = (newLeftPx / rect.width) * 100;
-        let pctY = (newTopPx / rect.height) * 100;
+        // Clamp 0-100%
+        let pctX = (newX / rect.width) * 100;
+        let pctY = (newY / rect.height) * 100;
 
         pctX = Math.max(0, Math.min(100, pctX));
         pctY = Math.max(0, Math.min(100, pctY));
 
-        // Aplicar
         el.style.left = pctX + '%';
         el.style.top = pctY + '%';
 
-        // Actualizar referencia para el siguiente frame
-        startX = clientX;
-        startY = clientY;
-
-        state.posX = pctX;
-        state.posY = pctY;
+        state.posX = pctX; state.posY = pctY;
+        startX = c.clientX; startY = c.clientY;
     };
 
-    const end = () => {
-        isDragging = false;
-        el.classList.remove('dragging');
-    };
+    const onEnd = () => { isDragging = false; };
 
-    el.addEventListener('mousedown', start);
-    el.addEventListener('touchstart', start, { passive: false });
-
-    // Listeners globales
-    document.addEventListener('mousemove', move);
-    document.addEventListener('touchmove', move, { passive: false });
-    document.addEventListener('mouseup', end);
-    document.addEventListener('touchend', end);
+    el.addEventListener('mousedown', onStart);
+    el.addEventListener('touchstart', onStart, { passive: false });
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchend', onEnd);
 }
 
 function setupNativeSubmit(form, btn, state) {
@@ -268,9 +295,7 @@ function setupNativeSubmit(form, btn, state) {
         if (state.active && state.text) {
             e.preventDefault();
             newBtn.innerText = "Guardando..."; newBtn.disabled = true;
-
-            const posX = Math.round(state.posX);
-            const posY = Math.round(state.posY);
+            const posX = Math.round(state.posX); const posY = Math.round(state.posY);
             const val = `${state.text} | Color: ${state.color} | Fuente: ${state.font.split(',')[0]} | Pos: ${posX}%,${posY}%`;
 
             let i1 = form.querySelector('input[name="properties[Personalizacion]"]');
