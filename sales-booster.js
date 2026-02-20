@@ -457,11 +457,66 @@
         document.head.appendChild(style);
     }
 
+    // ─── AUTO-APPLY COUPON ON CHECKOUT PAGE ───
+    // Si el usuario llega a /comprar/?coupon=XXXX, aplica el cupón automáticamente
+    function autoApplyCoupon() {
+        const params = new URLSearchParams(window.location.search);
+        const coupon = params.get('coupon');
+        if (!coupon) return;
+
+        console.log('[SalesBooster] Cupón detectado en URL:', coupon);
+
+        // Intentar aplicar inmediatamente y también con delay (el checkout de TN carga dinámicamente)
+        const tryApply = (attempts) => {
+            if (attempts <= 0) return;
+
+            // Selector del input de cupón en el checkout de Tiendanube
+            const input = document.querySelector(
+                'input[name="coupon"], input[id*="coupon"], input[placeholder*="descuento"], input[placeholder*="cupón"], input[placeholder*="cupon"]'
+            );
+
+            if (input) {
+                // Simular que el usuario escribe el código
+                input.value = coupon;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+
+                // Buscar y clickear el botón de aplicar cupón
+                setTimeout(() => {
+                    const btn = input.closest('form')?.querySelector('button[type="submit"], button')
+                        || document.querySelector('button[data-coupon], .js-coupon-btn, [class*="coupon"] button');
+                    if (btn) {
+                        btn.click();
+                        console.log('[SalesBooster] Cupón aplicado:', coupon);
+                    } else {
+                        input.form?.submit?.();
+                    }
+                }, 300);
+            } else {
+                // El checkout no cargó aún, reintentar
+                setTimeout(() => tryApply(attempts - 1), 800);
+            }
+        };
+
+        // Esperar a que el checkout cargue y aplicar
+        setTimeout(() => tryApply(8), 1500);
+    }
+
     // ─── BOOT ───
+    function boot() {
+        // Si estamos en el checkout (/comprar/) intentar auto-aplicar cupón
+        if (window.location.pathname.includes('/comprar')) {
+            autoApplyCoupon();
+        } else {
+            // Si estamos en una página de producto, mostrar el widget de combo
+            init();
+        }
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', boot);
     } else {
-        init();
+        boot();
     }
 
 })();
