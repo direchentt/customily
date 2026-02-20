@@ -4,14 +4,20 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import * as cheerio from 'cheerio';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-app.use(cors());
+
+// CORS: en producción acepta llamadas desde la tienda hachedhe.com.ar
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://www.hachedhe.com.ar', 'https://hachedhe.com.ar'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 const DB_PATH = path.join(__dirname, '../combos.json');
+const PORT = process.env.PORT || 3001;
 
 // ─── TIENDANUBE API CONFIG ───
 const TN_STORE_ID = '6325197';
@@ -20,7 +26,7 @@ const TN_API = `https://api.tiendanube.com/v1/${TN_STORE_ID}`;
 const TN_HEADERS = {
     'Authentication': `bearer ${TN_TOKEN}`,
     'Content-Type': 'application/json',
-    'User-Agent': 'SalesBooster/8.0 (direchentt@gmail.com)'
+    'User-Agent': 'SalesBooster/9.0 (direchentt@gmail.com)'
 };
 
 // ─── DRAFT ORDER ENDPOINT ───
@@ -132,6 +138,6 @@ app.post('/api/combos', (req, res) => {
     }
 });
 
-app.listen(3001, () => {
-    console.log("🚀 SalesBooster Server activo en http://localhost:3001");
+app.listen(PORT, () => {
+    console.log(`🚀 SalesBooster Server activo en http://localhost:${PORT}`);
 });
