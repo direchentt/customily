@@ -1,66 +1,65 @@
-console.log("🚀 SalesBooster V6.0 PURE COMBO: STARTING...");
+console.log("🚀 SalesBooster V7.0 VARIANT-AWARE: STARTING...");
 
 const SalesBooster = {
     settings: {
         dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json',
-        discountLabel: 'AHORRA EN PACK',
-        triggerSelectors: ['.js-product-form', '#product_form', '.js-addtocart', '.product-buy-container'],
-        cacheKey: 'sb_combos_db_v6'
+        triggerSelectors: ['.js-product-form', '#product_form', '.js-addtocart', '.product-buy-container']
     },
 
     init: async function () {
         const mainProduct = this.getMainProductData();
-        if (!mainProduct) return;
+        if (!mainProduct) { console.log("ℹ️ No product page detected."); return; }
+
         const db = await this.fetchCombosDB();
-        let partnerData = db[mainProduct.id];
-        if (partnerData && typeof partnerData !== 'string') {
+        const partnerData = db[mainProduct.id];
+
+        if (partnerData && typeof partnerData === 'object') {
+            console.log("✨ SalesBooster: Match found!", partnerData);
             this.renderComboWidget(mainProduct, partnerData);
+        } else {
+            console.log("ℹ️ No combo for product", mainProduct.id);
         }
     },
 
     getMainProductData: function () {
-        let idInput = document.querySelector('input[name="add_to_cart"]');
-        let id = idInput ? idInput.value : null;
+        // Obtener ID del producto
+        let id = null;
+
+        const addToCartInput = document.querySelector('input[name="add_to_cart"]');
+        if (addToCartInput) id = addToCartInput.value;
 
         if (!id) {
-            const metaId = document.querySelector('meta[property="product:retailer_item_id"]');
-            if (metaId) id = metaId.content;
-        }
-
-        if (!id) {
-            const container = document.querySelector('.js-product-detail, .product-detail');
-            if (container) id = container.getAttribute('data-product-id');
+            const meta = document.querySelector('meta[property="product:retailer_item_id"]');
+            if (meta) id = meta.content;
         }
 
         if (!id) return null;
 
-        const imgEl = document.querySelector('.js-product-slide-link img, .js-main-image, #main-image, .swiper-slide-active img');
+        // ⚠️ Obtener variant_id del formulario nativo (CLAVE del fix)
+        const variantInput = document.querySelector('input[name="variant_id"], select[name="variant_id"]');
+        const variantId = variantInput ? variantInput.value : null;
+
+        const imgEl = document.querySelector('.js-product-slide-link img, .js-main-image, .swiper-slide-active img');
         const priceEl = document.querySelector('#price_display, .price-display, .js-price-display');
 
         return {
             id: String(id),
+            variantId: variantId,
             img: imgEl ? imgEl.src : '',
-            price: priceEl ? this.parsePrice(priceEl.innerText) : 0,
-            name: document.querySelector('.js-product-name, h1')?.innerText || 'Producto'
+            price: priceEl ? this.parsePrice(priceEl.innerText) : 0
         };
     },
 
     fetchCombosDB: async function () {
         try {
-            const res = await fetch(this.settings.dbUrl + '?t=' + new Date().getTime());
+            const res = await fetch(this.settings.dbUrl + '?t=' + Date.now());
             return await res.json();
-        } catch (e) { return {}; }
+        } catch (e) { console.error("DB Error:", e); return {}; }
     },
 
     renderComboWidget: function (main, partner) {
-        console.log("🎨 Rendering Pure Widget...", partner);
-
-        const mainPrice = main.price;
-        const partnerPrice = typeof partner.price === 'string' ? this.parsePrice(partner.price) : partner.price;
-        const total = mainPrice + partnerPrice;
-
-        // No prometemos un precio exacto, prometemos "PACK"
-        // El precio tachado es la suma real.
+        const partnerPrice = this.parsePrice(String(partner.price));
+        const total = main.price + partnerPrice;
 
         const widget = document.createElement('div');
         widget.className = 'sb-combo-widget';
@@ -68,25 +67,35 @@ const SalesBooster = {
             <div class="sb-header">🔥 MEJOR JUNTOS</div>
             <div class="sb-body">
                 <div class="sb-images">
-                    <img src="${main.img}" class="sb-thumb">
+                    <div class="sb-img-wrap">
+                        <img src="${main.img}" class="sb-thumb">
+                        <span class="sb-this">Este</span>
+                    </div>
                     <span class="sb-plus">+</span>
-                    <img src="${partner.image || partner.img}" class="sb-thumb">
+                    <div class="sb-img-wrap">
+                        <img src="${partner.image}" class="sb-thumb">
+                        <span class="sb-partner-tag">+ Este</span>
+                    </div>
                 </div>
                 <div class="sb-details">
-                    <div class="sb-partner-title">Agrega también: <strong>${partner.name}</strong></div>
-                    <div class="sb-prices">
-                        <span class="sb-old">$${total.toLocaleString('es-AR')}</span>
-                        <span class="sb-tag">${this.settings.discountLabel}</span>
+                    <div class="sb-partner-name">${partner.name}</div>
+                    <div class="sb-price-row">
+                        <span class="sb-total-label">Subtotal Pack:</span>
+                        <span class="sb-total">$${total.toLocaleString('es-AR')}</span>
                     </div>
                 </div>
             </div>
-            <button class="sb-btn">AGREGAR PACK AL CARRITO 🛒</button>
-            <div class="sb-msg" style="display:none;font-size:11px;color:#666;margin-top:5px;">Procesando...</div>
+            <button class="sb-btn" id="sb-add-btn">
+                <span class="sb-btn-text">➕ AGREGAR PACK AL CARRITO</span>
+                <span class="sb-btn-loading" style="display:none">⏳ Sumando...</span>
+            </button>
+            <div class="sb-success" style="display:none">✅ ¡Pack agregado! <a href="/cart">Ver carrito →</a></div>
         `;
 
+        // Inyección multi-selector
         let injected = false;
-        for (const selector of this.settings.triggerSelectors) {
-            const target = document.querySelector(selector);
+        for (const sel of this.settings.triggerSelectors) {
+            const target = document.querySelector(sel);
             if (target) {
                 target.parentElement.insertBefore(widget, target.nextSibling);
                 injected = true;
@@ -94,86 +103,144 @@ const SalesBooster = {
             }
         }
         if (!injected) {
-            const fallback = document.querySelector('.js-product-detail') || document.body;
-            fallback.appendChild(widget);
+            (document.querySelector('.js-product-detail') || document.body).appendChild(widget);
         }
 
-        widget.querySelector('.sb-btn').onclick = (e) => {
+        widget.querySelector('#sb-add-btn').addEventListener('click', (e) => {
             e.preventDefault();
-            this.addComboToCart(main.id, partner.id, widget);
-        };
+            this.addComboToCart(main, partner, widget);
+        });
 
         this.injectStyles();
     },
 
-    addComboToCart: async function (id1, id2, widget) {
-        const btn = widget.querySelector('.sb-btn');
-        const msg = widget.querySelector('.sb-msg');
+    addComboToCart: async function (main, partner, widget) {
+        const btn = widget.querySelector('#sb-add-btn');
+        const textEl = widget.querySelector('.sb-btn-text');
+        const loadEl = widget.querySelector('.sb-btn-loading');
+        const successEl = widget.querySelector('.sb-success');
 
         btn.disabled = true;
-        btn.style.opacity = 0.5;
-        msg.innerText = "Sumando productos...";
-        msg.style.display = 'block';
+        textEl.style.display = 'none';
+        loadEl.style.display = 'inline';
 
         try {
-            const formData1 = new FormData(); formData1.append('add_to_cart', id1); formData1.append('quantity', 1);
-            const formData2 = new FormData(); formData2.append('add_to_cart', id2); formData2.append('quantity', 1);
+            // Re-leer variant_id actualizado (puede cambiar si el usuario seleccionó una variante)
+            const variantInput = document.querySelector('input[name="variant_id"], select[name="variant_id"]');
+            const currentVariantId = variantInput ? variantInput.value : main.variantId;
 
-            // Usamos fetch secuencial para asegurar orden
-            await fetch('/comprar/', { method: 'POST', body: formData1 });
-            await fetch('/comprar/', { method: 'POST', body: formData2 });
+            // POST #1: Producto principal con variant_id correcto
+            const payload1 = new URLSearchParams({ add_to_cart: main.id, quantity: 1 });
+            if (currentVariantId) payload1.append('variant_id', currentVariantId);
+            await fetch('/comprar/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: payload1.toString()
+            });
 
-            msg.innerText = "¡Hecho! Abriendo carrito...";
+            // POST #2: Producto compañero (usar su propio ID como add_to_cart)
+            const payload2 = new URLSearchParams({ add_to_cart: partner.id, quantity: 1 });
+            await fetch('/comprar/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: payload2.toString()
+            });
 
-            // Intentar abrir carrito lateral (AJAX)
-            if (window.LS && window.LS.cart && window.LS.cart.show) {
-                // Pequeño delay para asegurar que TIendanube actualizó el estado
-                setTimeout(() => {
-                    window.LS.cart.show();
-                    btn.disabled = false;
-                    btn.style.opacity = 1;
-                    msg.style.display = 'none';
-                }, 500);
-            } else {
-                // Fallback clásico
-                window.location.href = '/carrito';
+            // Éxito: Mostrar confirmación y abrir carrito nativo
+            loadEl.style.display = 'none';
+            successEl.style.display = 'block';
+            btn.style.display = 'none';
+
+            // Intentar abrir carrito lateral nativo de Tiendanube
+            const cartTrigger = document.querySelector('.js-modal-open[data-target="fullscreen-cart"], .js-modal-open.js-fullscreen-modal-open');
+            if (cartTrigger) {
+                setTimeout(() => cartTrigger.click(), 400);
             }
 
         } catch (e) {
             console.error("Cart Error:", e);
-            window.location.href = '/carrito';
+            loadEl.style.display = 'none';
+            textEl.style.display = 'inline';
+            textEl.innerText = '⚠️ Error. Intenta de nuevo.';
+            btn.disabled = false;
         }
     },
 
     parsePrice: function (str) {
-        if (typeof str !== 'string') return str;
+        if (typeof str === 'number') return str;
         return parseFloat(str.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
     },
 
     injectStyles: function () {
         if (document.getElementById('sb-styles')) return;
         const css = `
-            .sb-combo-widget { margin: 25px 0; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fff; font-family: sans-serif; clear: both; width: 100%; box-sizing: border-box; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-            .sb-header { font-size: 13px; font-weight: 800; color: #333; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-            .sb-body { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-            .sb-images { display: flex; align-items: center; gap: 8px; }
-            .sb-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; background: #fff; }
-            .sb-plus { color: #999; font-weight: bold; font-size: 18px; }
-            .sb-details { flex: 1; }
-            .sb-partner-title { font-size: 13px; color: #555; margin-bottom: 4px; line-height: 1.3; }
-            .sb-prices { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-            .sb-old { color: #333; font-weight: bold; font-size: 14px; }
-            .sb-tag { background: #000; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
-            .sb-btn { width: 100%; border: none; background: #000; color: #fff; padding: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: opacity 0.2s; }
-            .sb-btn:hover { opacity: 0.8; }
-            
-            @media (max-width: 480px) {
-                .sb-body { flex-direction: column; align-items: flex-start; }
+            .sb-combo-widget {
+                margin: 20px 0;
+                padding: 16px;
+                border: 1.5px solid #e5e7eb;
+                border-radius: 10px;
+                background: #fff;
+                font-family: sans-serif;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                clear: both;
+                box-sizing: border-box;
             }
+            .sb-header {
+                font-size: 12px;
+                font-weight: 800;
+                color: #111;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-bottom: 14px;
+            }
+            .sb-body { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+            .sb-images { display: flex; align-items: center; gap: 8px; }
+            .sb-img-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+            .sb-thumb { width: 65px; height: 65px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; }
+            .sb-this, .sb-partner-tag { font-size: 9px; color: #888; font-weight: 600; text-transform: uppercase; }
+            .sb-partner-tag { color: #16a34a; }
+            .sb-plus { font-size: 22px; font-weight: 900; color: #d1d5db; }
+            .sb-details { flex: 1; }
+            .sb-partner-name { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 6px; }
+            .sb-price-row { display: flex; align-items: center; gap: 8px; }
+            .sb-total-label { font-size: 12px; color: #6b7280; }
+            .sb-total { font-size: 16px; font-weight: 700; color: #111; }
+            .sb-btn {
+                width: 100%;
+                padding: 12px;
+                background: #111;
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                font-weight: 700;
+                font-size: 13px;
+                text-transform: uppercase;
+                cursor: pointer;
+                letter-spacing: 0.5px;
+                transition: background 0.2s;
+            }
+            .sb-btn:hover:not(:disabled) { background: #374151; }
+            .sb-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+            .sb-success {
+                text-align: center;
+                padding: 10px;
+                background: #f0fdf4;
+                border-radius: 6px;
+                font-size: 13px;
+                color: #16a34a;
+                font-weight: 600;
+            }
+            .sb-success a { color: #16a34a; text-decoration: underline; }
         `;
-        const s = document.createElement('style'); s.id = 'sb-styles'; s.innerText = css; document.head.appendChild(s);
+        const s = document.createElement('style');
+        s.id = 'sb-styles';
+        s.textContent = css;
+        document.head.appendChild(s);
     }
 };
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => SalesBooster.init());
-else SalesBooster.init();
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => SalesBooster.init());
+} else {
+    SalesBooster.init();
+}
