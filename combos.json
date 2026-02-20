@@ -53,5 +53,54 @@
         "image": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
       }
     ]
+  },
+  {
+    "id": "combo_1771561678239",
+    "label": "Bag",
+    "badge": "Más vendido",
+    "discount": 35,
+    "triggers": [
+      "295871887",
+      "295871890",
+      "295871898"
+    ],
+    "products": [
+      {
+        "id": "295871887",
+        "name": "Bag Sums",
+        "price": "$140.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_10_06_scuffers0270sem_41-jpg-d47644e0dbeac4cc1617713775897619-240-0.webp"
+      },
+      {
+        "id": "295871890",
+        "name": "Mini Bag Lomb",
+        "price": "$140.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/miniecrudufflebag_sem50_1-9851ca0cd1b09be58f17709462437392-240-0.webp"
+      },
+      {
+        "id": "295871898",
+        "name": "Bag Lion's",
+        "price": "$340.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_10_13scuffersbags0123-5405dbe1903550603d17710380276695-240-0.webp"
+      },
+      {
+        "id": "295871896",
+        "name": "Bag Arbutin",
+        "price": "$440.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/officebrownbag_sem50_1-64cf44e4aa0297472a17710381002451-240-0.webp"
+      },
+      {
+        "id": "295871894",
+        "name": "Bag PHA",
+        "price": "$140.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/underbluetotebag_drop10_2_b200fe23-e519-4e42-bc69-a398542696ba-jpg-fed02c9f634769a67a17713776332318-240-0.webp"
+      },
+      {
+        "id": "325084391",
+        "name": "Mini Bag Jvo",
+        "price": "$140.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/minibrowndufflebag_sem50_1-e2c440fdb4927187a617709462783279-240-0.webp"
+      }
+    ]
   }
 ]
