@@ -1,71 +1,52 @@
-console.log("🚀 SalesBooster V2.1 DEBUG MODE: STARTING...");
+console.log("🚀 SalesBooster V4.0 MULTI-INJECTOR: STARTING...");
 
 const SalesBooster = {
     settings: {
-        dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json', // TU BASE DE DATOS
+        dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json',
         discountLabel: 'PACK 10% OFF',
-        triggerSelector: '.js-addtocart, input[type="submit"], .product-form',
-        cacheKey: 'sb_combos_db_v2'
+        // Aumentamos los selectores para asegurar inyección
+        triggerSelectors: [
+            '.js-product-form',  // Prioridad 1: Después del form completo
+            '#product_form',     // Prioridad 2: ID del form
+            '.js-addtocart',    // Prioridad 3: Botón
+            '.product-buy-container',
+            '.js-product-buy-container'
+        ],
+        cacheKey: 'sb_combos_db_v4'
     },
 
     init: async function () {
-        console.log("🕵️ SalesBooster: Searching for product context...");
+        // ... (Mismo código de inicialización V3) ...
+        console.log("🕵️ SalesBooster V4: Searching context...");
 
-        // 1. Obtener ID del Producto Actual (Múltiples métodos)
         const mainProduct = this.getMainProductData();
+        if (!mainProduct) return;
 
-        if (!mainProduct) {
-            console.warn("⚠️ SalesBooster: No product detected on this page.");
-            return;
-        }
-
-        console.log("✅ Main Product Detected:", mainProduct);
-
-        // 2. Obtener DB de Combos
-        console.log("⬇️ Fetching Combos DB...");
         const db = await this.fetchCombosDB();
-        console.log("📂 DB Loaded:", db);
+        let partnerData = db[mainProduct.id];
 
-        const partnerId = db[mainProduct.id];
-
-        if (partnerId) {
-            console.log(`✨ SalesBooster: MATCH FOUND! ${mainProduct.id} + ${partnerId}`);
-            const partnerProduct = await this.fetchPartnerData(partnerId);
-            if (partnerProduct) {
-                this.renderComboWidget(mainProduct, partnerProduct);
+        if (partnerData) {
+            if (typeof partnerData === 'string') {
+                console.warn("⚠️ Legacy Combo Format detected.");
             } else {
-                console.error("❌ Partner Product Data Fetch Failed for ID:", partnerId);
+                console.log("✨ SalesBooster: INSTANT MATCH!", partnerData);
+                this.renderComboWidget(mainProduct, partnerData);
             }
         } else {
-            console.log("ℹ️ No combo defined for this product ID in DB.");
+            console.log("ℹ️ No combo config found for", mainProduct.id);
         }
     },
 
     getMainProductData: function () {
-        // Method 1: Input Hidden (Standard Tiendanube)
+        // ... (Misma lógica robusta de V3) ...
         let idInput = document.querySelector('input[name="add_to_cart"]');
         let id = idInput ? idInput.value : null;
 
-        // Method 2: Meta Tag (Facebook Pixel / OG)
         if (!id) {
             const metaId = document.querySelector('meta[property="product:retailer_item_id"]');
             if (metaId) id = metaId.content;
         }
 
-        // Method 3: JSON-LD (Google Structured Data)
-        if (!id) {
-            const jsonLd = document.querySelectorAll('script[type="application/ld+json"]');
-            jsonLd.forEach(script => {
-                try {
-                    const data = JSON.parse(script.innerText);
-                    if (data['@type'] === 'Product' || data['@type'] === 'ProductGroup') {
-                        id = data.sku || data.productID;
-                    }
-                } catch (e) { }
-            });
-        }
-
-        // Method 4: Data Attribute in Body or Container
         if (!id) {
             const container = document.querySelector('.js-product-detail, .product-detail');
             if (container) id = container.getAttribute('data-product-id');
@@ -73,16 +54,13 @@ const SalesBooster = {
 
         if (!id) return null;
 
-        // Get basic info
         const imgEl = document.querySelector('.js-product-slide-link img, .js-main-image, #main-image, .swiper-slide-active img');
         const priceEl = document.querySelector('#price_display, .price-display, .js-price-display');
-        const nameEl = document.querySelector('h1.product-name, h1, .product-name');
 
         return {
             id: String(id),
             img: imgEl ? imgEl.src : '',
-            price: priceEl ? this.parsePrice(priceEl.innerText) : 0,
-            name: nameEl ? nameEl.innerText : 'Producto'
+            price: priceEl ? this.parsePrice(priceEl.innerText) : 0
         };
     },
 
@@ -90,49 +68,16 @@ const SalesBooster = {
         try {
             const res = await fetch(this.settings.dbUrl + '?t=' + new Date().getTime());
             return await res.json();
-        } catch (e) {
-            console.error("SalesBooster DB Error:", e);
-            return {};
-        }
-    },
-
-    fetchPartnerData: async function (id) {
-        try {
-            console.log(`🔍 Searching partner data for ID: ${id}`);
-            const searchRes = await fetch(`/search/?q=${id}`);
-            const html = await searchRes.text();
-            const doc = new DOMParser().parseFromString(html, 'text/html');
-
-            // Buscar item
-            const item = doc.querySelector(`.js-item-product[data-product-id="${id}"], .item-product`);
-
-            if (!item) {
-                console.warn("⚠️ Partner not found in search results.");
-                return null;
-            }
-
-            // Extract Data
-            const name = item.querySelector('.item-name, .product-name, a[title]').innerText;
-            let img = item.querySelector('img').getAttribute('src') || item.querySelector('img').getAttribute('data-src');
-            if (img && img.startsWith('//')) img = 'https:' + img;
-            const priceStr = item.querySelector('.item-price, .price').innerText;
-
-            return {
-                id: id,
-                name: name,
-                img: img,
-                price: this.parsePrice(priceStr)
-            };
-
-        } catch (e) {
-            console.error("Partner Data Error:", e);
-            return null;
-        }
+        } catch (e) { return {}; }
     },
 
     renderComboWidget: function (main, partner) {
-        console.log("🎨 Rendering Widget...");
-        const total = main.price + partner.price;
+        console.log("🎨 Rendering Widget V4...");
+
+        const mainPrice = main.price;
+        const partnerPrice = typeof partner.price === 'string' ? this.parsePrice(partner.price) : partner.price;
+
+        const total = mainPrice + partnerPrice;
         const discounted = Math.floor(total * 0.9);
 
         const widget = document.createElement('div');
@@ -143,7 +88,7 @@ const SalesBooster = {
                 <div class="sb-images">
                     <img src="${main.img}" class="sb-thumb">
                     <span class="sb-plus">+</span>
-                    <img src="${partner.img}" class="sb-thumb">
+                    <img src="${partner.image || partner.img}" class="sb-thumb">
                 </div>
                 <div class="sb-details">
                     <div class="sb-partner-title">Llevate también: <strong>${partner.name}</strong></div>
@@ -157,13 +102,24 @@ const SalesBooster = {
             <button class="sb-btn">AGREGAR PACK AL CARRITO 🛒</button>
         `;
 
-        // Try multiple injection points
-        const target = document.querySelector(this.settings.triggerSelector);
-        if (target) {
-            target.parentElement.insertBefore(widget, target.nextSibling);
-            console.log("✅ Widget Injected successfully!");
-        } else {
-            console.error("❌ Could not find injection point (.js-addtocart or similar).");
+        // INYECCIÓN MULTI-SELECTOR
+        let injected = false;
+        for (const selector of this.settings.triggerSelectors) {
+            const target = document.querySelector(selector);
+            if (target) {
+                console.log(`✅ Injecting after: ${selector}`);
+                target.parentElement.insertBefore(widget, target.nextSibling);
+                injected = true;
+                break; // Stop after first successful injection
+            }
+        }
+
+        if (!injected) {
+            console.error("❌ CRITICAL: No injection point found in PDP.");
+            // Fallback: Append to body or product detail container
+            const fallback = document.querySelector('.js-product-detail') || document.body;
+            fallback.appendChild(widget);
+            console.log("⚠️ Used fallback injection.");
         }
 
         widget.querySelector('.sb-btn').onclick = (e) => {
@@ -174,6 +130,7 @@ const SalesBooster = {
         this.injectStyles();
     },
 
+    // ... (Métodos addComboToCart, parsePrice, injectStyles iguales a V3) ...
     addComboToCart: async function (id1, id2, btn) {
         btn.innerText = "Agregando..."; btn.style.opacity = 0.7;
         try {
@@ -187,13 +144,14 @@ const SalesBooster = {
     },
 
     parsePrice: function (str) {
+        if (typeof str !== 'string') return str;
         return parseFloat(str.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
     },
 
     injectStyles: function () {
         if (document.getElementById('sb-styles')) return;
         const css = `
-            .sb-combo-widget { margin: 25px 0; border: 2px dashed #e1e1e1; padding: 15px; border-radius: 8px; background: #fafafa; font-family: sans-serif; clear: both; }
+            .sb-combo-widget { margin: 25px 0; border: 2px dashed #e1e1e1; padding: 15px; border-radius: 8px; background: #fafafa; font-family: sans-serif; clear: both; width: 100%; box-sizing: border-box; }
             .sb-header { font-size: 13px; font-weight: 800; color: #333; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
             .sb-body { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
             .sb-images { display: flex; align-items: center; gap: 8px; }
@@ -207,6 +165,11 @@ const SalesBooster = {
             .sb-tag { background: #27ae60; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
             .sb-btn { width: 100%; border: none; background: #222; color: #fff; padding: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: opacity 0.2s; }
             .sb-btn:hover { opacity: 0.9; }
+            
+            @media (max-width: 480px) {
+                .sb-body { flex-direction: column; align-items: flex-start; }
+                .sb-thumb { width: 50px; height: 50px; }
+            }
         `;
         const s = document.createElement('style'); s.id = 'sb-styles'; s.innerText = css; document.head.appendChild(s);
     }
