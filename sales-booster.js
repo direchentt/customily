@@ -189,6 +189,8 @@
                 const params = new URLSearchParams({ add_to_cart: p.id, quantity: 1 });
                 if (String(p.id) === String(currentProductId) && currentVariantId) {
                     params.append('variant_id', currentVariantId);
+                } else if (p.variant_id) {
+                    params.append('variant_id', p.variant_id);
                 }
                 await fetch(CONFIG.cartEndpoint, {
                     method: 'POST',
@@ -214,15 +216,15 @@
                 successEl.innerHTML = `✅ ¡Pack listo! Cupón <b>${coupon}</b> copiado.<br>Yendo al carrito...`;
 
                 setTimeout(() => {
-                    // Redirigir al /cart que siempre existe y permite iniciar el checkout correctamente
-                    window.location.href = '/cart';
+                    // Redirigir al cart Endpoint correcto que existe para evitar 404
+                    window.location.href = CONFIG.cartEndpoint;
                 }, 1500);
             } else {
                 successEl.innerHTML = `✅ ¡Pack agregado al carrito!`;
                 setTimeout(() => {
                     const trigger = document.querySelector(CONFIG.cartTriggerSelector);
                     if (trigger) trigger.click();
-                    else window.location.href = '/cart';
+                    else window.location.href = CONFIG.cartEndpoint;
                 }, 500);
             }
 
