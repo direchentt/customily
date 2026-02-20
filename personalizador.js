@@ -1,152 +1,242 @@
-console.log("🚀 Personalizador Estable v1.0: Modo Texto + Carrito");
+console.log("🚀 Personalizador Casetify Lite v1.0: Iniciando...");
 
 const SELECTOR_IMAGEN = '.js-product-slide-img, .product-image-container img, .swiper-slide-active img';
 const SELECTOR_FORMULARIO = '.js-addtocart, .js-product-form';
 
-function iniciarPersonalizador() {
+function iniciarCasetify() {
     if (!window.location.pathname.includes('/productos/')) return;
 
-    const imagen = document.querySelector(SELECTOR_IMAGEN);
+    const imagenBase = document.querySelector(SELECTOR_IMAGEN);
     const formulario = document.querySelector(SELECTOR_FORMULARIO);
 
     // Evitar duplicados
-    if (imagen && formulario && !document.getElementById('customily-container')) {
+    if (imagenBase && formulario && !document.getElementById('casetify-panel')) {
 
-        // 1. Crear el Contenedor Visual (Overlay)
-        const contenedorImagen = imagen.parentElement;
-        contenedorImagen.style.position = "relative";
+        console.log("📱 Construyendo interfaz tipo Casetify...");
 
-        const textoOverlay = document.createElement('div');
-        textoOverlay.id = 'preview-texto';
-        textoOverlay.innerText = "TU TEXTO";
-        textoOverlay.style.position = "absolute";
-        textoOverlay.style.top = "50%";
-        textoOverlay.style.left = "50%";
-        textoOverlay.style.transform = "translate(-50%, -50%)"; // Centrado perfecto
-        textoOverlay.style.color = "white"; // Default blanco
-        textoOverlay.style.fontSize = "30px";
-        textoOverlay.style.fontWeight = "bold";
-        textoOverlay.style.textAlign = "center";
-        textoOverlay.style.textShadow = "2px 2px 4px rgba(0,0,0,0.8)";
-        textoOverlay.style.pointerEvents = "none"; // Para no bloquear la imagen
-        textoOverlay.style.zIndex = "100";
-        textoOverlay.style.maxWidth = "80%";
-        textoOverlay.style.wordWrap = "break-word";
+        // ------------------------------------------------
+        // 1. PREPARAR EL VISUALIZADOR (LAYERS)
+        // ------------------------------------------------
+        const contenedorVisual = imagenBase.parentElement;
+        contenedorVisual.style.position = "relative";
 
-        contenedorImagen.appendChild(textoOverlay);
+        // Capa 1: El Arte (Es la imagen original del producto)
+        // Capa 2: El Marco de la Funda (Simulado por ahora con un borde visual)
+        const capaMarco = document.createElement('div');
+        capaMarco.id = 'case-frame';
+        capaMarco.style.position = "absolute";
+        capaMarco.style.top = "0";
+        capaMarco.style.left = "0";
+        capaMarco.style.width = "100%";
+        capaMarco.style.height = "100%";
+        capaMarco.style.pointerEvents = "none";
+        capaMarco.style.zIndex = "10";
+        capaMarco.style.boxSizing = "border-box";
+        capaMarco.style.border = "20px solid #000"; // Borde inicial (Negro Impact)
+        capaMarco.style.borderRadius = "30px"; // Bordes redondeados tipo iPhone
+        capaMarco.style.boxShadow = "inset 0 0 20px rgba(0,0,0,0.5)"; // Sombra interna para realismo
 
-        // 2. Crear el Panel de Control (Inputs)
+        contenedorVisual.appendChild(capaMarco);
+
+        // Capa 3: El Texto Personalizado
+        const capaTexto = document.createElement('div');
+        capaTexto.id = 'case-text';
+        capaTexto.innerText = "TU NOMBRE";
+        capaTexto.style.position = "absolute";
+        capaTexto.style.top = "40%";
+        capaTexto.style.left = "50%";
+        capaTexto.style.transform = "translate(-50%, -50%) rotate(-90deg)"; // Texto vertical estilo Casetify
+        capaTexto.style.fontFamily = "'Helvetica', sans-serif";
+        capaTexto.style.fontSize = "40px";
+        capaTexto.style.fontWeight = "bold";
+        capaTexto.style.color = "white";
+        capaTexto.style.letterSpacing = "5px";
+        capaTexto.style.zIndex = "20";
+        capaTexto.style.textShadow = "2px 2px 0px rgba(0,0,0,0.5)";
+
+        contenedorVisual.appendChild(capaTexto);
+
+        // ------------------------------------------------
+        // 2. CONSTRUIR EL PANEL DE CONTROL (UI)
+        // ------------------------------------------------
         const panel = document.createElement('div');
-        panel.id = 'customily-container';
-        panel.style.background = "#f8f9fa";
-        panel.style.padding = "15px";
-        panel.style.borderRadius = "8px";
+        panel.id = 'casetify-panel';
+        panel.style.background = "#fff";
+        panel.style.padding = "20px";
+        panel.style.border = "1px solid #eee";
+        panel.style.borderRadius = "10px";
         panel.style.marginBottom = "20px";
-        panel.style.border = "1px solid #ddd";
+        panel.style.marginTop = "20px";
+        panel.style.fontFamily = "sans-serif";
+        panel.style.boxShadow = "0 3px 10px rgba(0,0,0,0.05)";
 
-        // Título del Panel
-        const titulo = document.createElement('h4');
-        titulo.innerText = "✏️ Personaliza tu Producto";
-        titulo.style.marginTop = "0";
-        titulo.style.marginBottom = "10px";
+        // Título Estiloso
+        const titulo = document.createElement('h3');
+        titulo.innerText = "🛠 PERSONALIZA TU FUNDA";
+        titulo.style.margin = "0 0 15px 0";
         titulo.style.fontSize = "16px";
+        titulo.style.borderBottom = "2px solid #000";
+        titulo.style.paddingBottom = "10px";
+        titulo.style.textTransform = "uppercase";
+        titulo.style.letterSpacing = "1px";
         panel.appendChild(titulo);
 
-        // Input de TEXTO
+        // SECCIÓN A: MODELO DE DISPOSITIVO
+        const labelDispositivo = document.createElement('label');
+        labelDispositivo.innerText = "1. MODELO DE DISPOSITIVO";
+        labelDispositivo.style.display = "block";
+        labelDispositivo.style.fontWeight = "bold";
+        labelDispositivo.style.fontSize = "12px";
+        labelDispositivo.style.marginBottom = "5px";
+        labelDispositivo.style.color = "#555";
+        panel.appendChild(labelDispositivo);
+
+        const selectDispositivo = document.createElement('select');
+        selectDispositivo.style.width = "100%";
+        selectDispositivo.style.padding = "10px";
+        selectDispositivo.style.marginBottom = "15px";
+        selectDispositivo.style.borderRadius = "5px";
+        selectDispositivo.style.border = "1px solid #ccc";
+        selectDispositivo.style.backgroundColor = "#fafafa";
+
+        ['iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 14', 'Samsung S24 Ultra'].forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.innerText = m;
+            selectDispositivo.appendChild(opt);
+        });
+
+        selectDispositivo.addEventListener('change', () => actualizarDatosCompra());
+        panel.appendChild(selectDispositivo);
+
+        // SECCIÓN B: TIPO DE FUNDA (Colores/Estilos)
+        const labelEstilo = document.createElement('label');
+        labelEstilo.innerText = "2. ESTILO DE BORDE (IMPACTO)";
+        labelEstilo.style.display = "block";
+        labelEstilo.style.fontWeight = "bold";
+        labelEstilo.style.fontSize = "12px";
+        labelEstilo.style.marginBottom = "5px";
+        labelEstilo.style.color = "#555";
+        panel.appendChild(labelEstilo);
+
+        const gridEstilos = document.createElement('div');
+        gridEstilos.style.display = "flex";
+        gridEstilos.style.gap = "10px";
+        gridEstilos.style.marginBottom = "20px";
+
+        const estilos = [
+            { nombre: "Impact Black", color: "#111", borde: "20px solid #111" },
+            { nombre: "Cotton Candy", color: "#ffb7b2", borde: "20px solid #ffb7b2" },
+            { nombre: "Clear", color: "#eef", borde: "20px solid rgba(255,255,255,0.7)" },
+            { nombre: "Azul Cobalto", color: "#0047AB", borde: "20px solid #0047AB" }
+        ];
+
+        let estiloSeleccionado = estilos[0].nombre;
+
+        estilos.forEach(estilo => {
+            const btn = document.createElement('div');
+            btn.title = estilo.nombre;
+            btn.style.width = "40px";
+            btn.style.height = "40px";
+            btn.style.borderRadius = "50%";
+            btn.style.backgroundColor = estilo.color;
+            btn.style.border = "2px solid #ddd"; // Borde inactivo
+            btn.style.cursor = "pointer";
+            btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
+            btn.style.transition = "transform 0.2s, border-color 0.2s";
+
+            // Acción al hacer click
+            btn.addEventListener('click', () => {
+                // Feedback visual en botones (resetear todos)
+                Array.from(gridEstilos.children).forEach(b => {
+                    b.style.transform = "scale(1)";
+                    b.style.border = "2px solid #ddd";
+                });
+                // Activar este botón
+                btn.style.transform = "scale(1.15)";
+                btn.style.border = "3px solid #000"; // Borde activo negro fuerte
+
+                // CAMBIAR EL MARCO (Aquí iría el cambio de imagen PNG en el futuro)
+                capaMarco.style.border = estilo.borde;
+                estiloSeleccionado = estilo.nombre;
+
+                // Actualizar input oculto
+                actualizarDatosCompra();
+            });
+
+            gridEstilos.appendChild(btn);
+        });
+
+        // Seleccionar el primero por defecto
+        if (gridEstilos.firstChild) {
+            gridEstilos.firstChild.click();
+        }
+
+        panel.appendChild(gridEstilos);
+
+        // SECCIÓN C: TEXTO PERSONALIZADO
+        const labelTexto = document.createElement('label');
+        labelTexto.innerText = "3. TU FIRMA / TEXTO";
+        labelTexto.style.display = "block";
+        labelTexto.style.fontWeight = "bold";
+        labelTexto.style.fontSize = "12px";
+        labelTexto.style.marginBottom = "5px";
+        labelTexto.style.color = "#555";
+        panel.appendChild(labelTexto);
+
         const inputTexto = document.createElement('input');
         inputTexto.type = "text";
-        inputTexto.placeholder = "Escribe tu nombre o frase...";
+        inputTexto.placeholder = "Escribe tu nombre... (Máx 10)";
+        inputTexto.maxLength = 10;
         inputTexto.style.width = "100%";
-        inputTexto.style.padding = "10px";
-        inputTexto.style.marginBottom = "10px";
+        inputTexto.style.padding = "12px";
         inputTexto.style.borderRadius = "5px";
         inputTexto.style.border = "1px solid #ccc";
+        inputTexto.style.fontSize = "16px";
+        inputTexto.style.backgroundColor = "#fafafa";
+
         inputTexto.addEventListener('input', (e) => {
             const val = e.target.value;
-            textoOverlay.innerText = val || "TU TEXTO";
-            actualizarInputOculto();
+            capaTexto.innerText = val ? val.toUpperCase() : "TU NOMBRE";
+            // Si está vacío, ocultar texto visualmente para limpieza
+            capaTexto.style.opacity = val ? "1" : "0.5";
+            actualizarDatosCompra();
         });
         panel.appendChild(inputTexto);
 
-        // Selector de COLOR DE TEXTO
-        const labelColor = document.createElement('label');
-        labelColor.innerText = "Color del Texto:";
-        labelColor.style.display = "block";
-        labelColor.style.marginTop = "10px";
-        labelColor.style.fontSize = "14px";
-        panel.appendChild(labelColor);
-
-        const colores = [
-            { nombre: "Blanco", hex: "#FFFFFF" },
-            { nombre: "Negro", hex: "#000000" },
-            { nombre: "Rojo", hex: "#D32F2F" },
-            { nombre: "Azul", hex: "#1976D2" },
-            { nombre: "Dorado", hex: "#FFD700" }
-        ];
-
-        const contenedorColores = document.createElement('div');
-        contenedorColores.style.display = "flex";
-        contenedorColores.style.gap = "10px";
-        contenedorColores.style.marginTop = "5px";
-
-        let colorSeleccionado = "Blanco"; // Default
-
-        colores.forEach(c => {
-            const btnColor = document.createElement('div');
-            btnColor.style.width = "30px";
-            btnColor.style.height = "30px";
-            btnColor.style.borderRadius = "50%";
-            btnColor.style.backgroundColor = c.hex;
-            btnColor.style.border = "2px solid #ddd";
-            btnColor.style.cursor = "pointer";
-            btnColor.title = c.nombre;
-
-            btnColor.addEventListener('click', () => {
-                // Quitar selección visual a todos
-                Array.from(contenedorColores.children).forEach(b => b.style.transform = "scale(1)");
-                // Seleccionar este
-                btnColor.style.transform = "scale(1.2)";
-                btnColor.style.borderColor = "#333";
-
-                // Aplicar
-                textoOverlay.style.color = c.hex;
-                colorSeleccionado = c.nombre;
-                actualizarInputOculto();
-            });
-            contenedorColores.appendChild(btnColor);
-        });
-        panel.appendChild(contenedorColores);
-
-        // 3. LA CLAVE: Guardar en el Pedido (Propiedades de Línea)
-        // Creamos un campo oculto que viaja con el formulario al carrito
-        // Nota: El "name" depende del tema, probaremos con el estándar de Shopify/TN
+        // ------------------------------------------------
+        // 3. CONECTAR CON EL CARRITO
+        // ------------------------------------------------
+        // Creamos inputs ocultos para que viajen al checkout
         const inputHidden = document.createElement('input');
         inputHidden.type = 'hidden';
-        inputHidden.name = 'properties[Personalizacion]'; // Estándar común
+        inputHidden.name = 'properties[Configuración]'; // Campo principal para Shopify/TN
         inputHidden.id = 'customily-data-hidden';
         formulario.appendChild(inputHidden);
 
-        // Función para guardar los datos
-        function actualizarInputOculto() {
-            const texto = inputTexto.value;
-            if (texto) {
-                // Guardamos: "Texto: Juan - Color: Rojo"
-                inputHidden.value = `Texto: ${texto} | Color: ${colorSeleccionado}`;
-                console.log("💾 Datos preparados para enviar:", inputHidden.value);
-            } else {
-                inputHidden.value = ""; // Si borra, no enviamos nada
-            }
+        function actualizarDatosCompra() {
+            const dispositivo = selectDispositivo.value;
+            const texto = inputTexto.value || "Sin texto";
+
+            // Construir string de datos: "iPhone 15 | Borde Negro | Texto: JUAN"
+            const valorFinal = `${dispositivo} | Borde: ${estiloSeleccionado} | Texto: ${texto}`;
+            inputHidden.value = valorFinal;
+
+            console.log("📦 Datos listos para carrito:", inputHidden.value);
         }
 
-        // Insertar panel antes del botón de compra
+        // Inicializar datos
+        actualizarDatosCompra();
+
+        // Insertar Panel antes del botón de compra
         formulario.parentNode.insertBefore(panel, formulario);
     }
 }
 
-// Ejecutar con persistencia
+// Ejecutar persistente por si la página tarda en cargar
 let intentos = 0;
 const intervalo = setInterval(() => {
-    iniciarPersonalizador();
+    iniciarCasetify();
     intentos++;
     if (intentos > 20) clearInterval(intervalo);
 }, 500);
