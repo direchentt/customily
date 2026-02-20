@@ -25,54 +25,42 @@ const TN_HEADERS = {
 
 // ─── DRAFT ORDER ENDPOINT ───
 // Crea un carrito con descuento nativo via Tiendanube API y devuelve checkout_url
-app.post('/api/draft-order', async (req, res) => {
+// ─── CREATE COUPON ENDPOINT ───
+// Crea un cupón dinámico de un solo uso y devuelve el código para auto-aplicar en checkout
+app.post('/api/create-coupon', async (req, res) => {
     try {
-        const { products, discount_percent } = req.body;
-        // products: [{ variant_id, quantity, price }]
-        // discount_percent: número (ej: 20)
+        const { discount_percent, combo_id } = req.body;
 
-        if (!products || products.length === 0) {
-            return res.status(400).json({ error: 'No products provided' });
+        if (!discount_percent || discount_percent <= 0) {
+            return res.json({ success: false, coupon: null });
         }
 
-        // Calcular descuento total
-        const subtotal = products.reduce((sum, p) => sum + (parseFloat(p.price) * p.quantity), 0);
-        const discountAmount = (subtotal * discount_percent / 100).toFixed(2);
+        // Código único por combo + timestamp para evitar duplicados
+        const ts = Date.now().toString(36).toUpperCase();
+        const couponCode = `PACK${(combo_id || 'CB').replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 8)}${ts}`.slice(0, 20);
 
-        const body = {
-            products: products.map(p => ({
-                variant_id: p.variant_id,
-                quantity: p.quantity
-            })),
-            promotional_discount: {
-                applies_to: 'total',
-                type: 'percentage',
-                value: discount_percent,
-                discount_value: discountAmount
-            }
-        };
+        const couponRes = await axios.post(`${TN_API}/coupons`, {
+            code: couponCode,
+            type: 'percentage',
+            value: discount_percent,
+            valid: true,
+            max_uses: 1,    // Un solo uso
+            used_times: 0,
+            min_price: 0,
+        }, { headers: TN_HEADERS });
 
-        console.log(`📦 Creating Draft Order: ${products.length} products, ${discount_percent}% OFF ($${discountAmount} off)`);
+        const createdCode = couponRes.data.code;
+        console.log(`🎟️ Cupón creado: ${createdCode} (${discount_percent}% OFF, 1 uso)`);
 
-        const response = await axios.post(`${TN_API}/draft_orders`, body, { headers: TN_HEADERS });
-        const draftOrder = response.data;
-
-        console.log(`✅ Draft Order created: ${draftOrder.id} | Checkout: ${draftOrder.checkout_url}`);
-
-        res.json({
-            success: true,
-            checkout_url: draftOrder.checkout_url,
-            draft_order_id: draftOrder.id,
-            total: draftOrder.total,
-            discount: draftOrder.discount
-        });
+        res.json({ success: true, coupon: createdCode });
 
     } catch (error) {
         const errData = error.response?.data || error.message;
-        console.error('❌ Draft Order Error:', JSON.stringify(errData));
-        res.status(500).json({ error: 'Failed to create draft order', details: errData });
+        console.error('❌ Coupon Error:', JSON.stringify(errData));
+        res.json({ success: false, coupon: null, error: errData });
     }
 });
+
 
 // --- API ROUTES ---
 

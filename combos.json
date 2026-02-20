@@ -58,6 +58,7 @@
     "id": "combo_1771561678239",
     "label": "Bag",
     "badge": "Más vendido",
+    "coupon": "",
     "discount": 35,
     "triggers": [
       "295871887",
@@ -65,24 +66,6 @@
       "295871898"
     ],
     "products": [
-      {
-        "id": "295871887",
-        "name": "Bag Sums",
-        "price": "$140.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_10_06_scuffers0270sem_41-jpg-d47644e0dbeac4cc1617713775897619-240-0.webp"
-      },
-      {
-        "id": "295871890",
-        "name": "Mini Bag Lomb",
-        "price": "$140.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/miniecrudufflebag_sem50_1-9851ca0cd1b09be58f17709462437392-240-0.webp"
-      },
-      {
-        "id": "295871898",
-        "name": "Bag Lion's",
-        "price": "$340.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_10_13scuffersbags0123-5405dbe1903550603d17710380276695-240-0.webp"
-      },
       {
         "id": "295871896",
         "name": "Bag Arbutin",
@@ -100,6 +83,56 @@
         "name": "Mini Bag Jvo",
         "price": "$140.000,00",
         "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/minibrowndufflebag_sem50_1-e2c440fdb4927187a617709462783279-240-0.webp"
+      }
+    ]
+  },
+  {
+    "id": "combo_1771562325561",
+    "label": "Pack Ring Reishi",
+    "badge": "",
+    "coupon": "",
+    "discount": 10,
+    "triggers": [
+      "295871908",
+      "325098020"
+    ],
+    "products": [
+      {
+        "id": "301225727",
+        "name": "MIRROR ERRORR",
+        "price": "$115.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_au_bracelet_sem_45_1-ad19170ea63c0410e517709460143266-240-0.webp"
+      },
+      {
+        "id": "297463683",
+        "name": "Smash Charm",
+        "price": "$194.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-240-0.webp"
+      }
+    ]
+  },
+  {
+    "id": "combo_1771562342627",
+    "label": "Pack Elemental Wallet",
+    "badge": "",
+    "coupon": "",
+    "discount": 75,
+    "triggers": [
+      "325083548",
+      "295871912"
+    ],
+    "products": [
+      {
+        "id": "295871912",
+        "name": "Chemical Wallet",
+        "price": "$140.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/essential-ecru-wallet-sem53_1-aa0c698dfa001a7b6417709460983187-240-0.webp"
+      },
+      {
+        "id": "325083548",
+        "name": "Elemental Wallet",
+        "price": "$140.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/essential-burgundy-wallet-sem53_2-ca65a17f273022c2cc17709461357013-240-0.webp"
       }
     ]
   }

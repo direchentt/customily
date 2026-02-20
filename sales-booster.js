@@ -164,7 +164,7 @@
         injectStyles();
     }
 
-    // ─── ADD TO CART (via Draft Order API — descuento nativo) ───
+    // ─── ADD TO CART (carrito nativo + cupón dinámico via API) ───
     async function addComboToCart(main, partners, widget, combo) {
         const btn = widget.querySelector('#sb-cta-btn');
         const textEl = widget.querySelector('.sb-cta-text');
@@ -177,76 +177,67 @@
         loadEl.style.display = 'inline';
 
         try {
-            // Leer variant_id actualizado del producto principal
             const variantInput = document.querySelector('input[name="variant_id"], select[name="variant_id"]');
             const variantId = variantInput ? variantInput.value : main.variantId;
 
-            // Construir lista de productos para el Draft Order
-            const allProducts = [
-                { variant_id: variantId || main.id, quantity: 1, price: main.price },
-                ...partners.map(p => ({ variant_id: p.id, quantity: 1, price: parsePrice(p.price) }))
+            // PASO 1 + 2 en paralelo: agregar productos al carrito Y crear cupón simultáneamente
+            const cartPromises = [
+                // Producto principal
+                fetch(CONFIG.cartEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ add_to_cart: main.id, quantity: 1, ...(variantId ? { variant_id: variantId } : {}) }).toString(),
+                    redirect: 'manual'
+                }),
+                // Productos del pack
+                ...partners.map(p => fetch(CONFIG.cartEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ add_to_cart: p.id, quantity: 1 }).toString(),
+                    redirect: 'manual'
+                })),
             ];
 
-            // Llamar al backend para crear Draft Order con descuento nativo
-            const response = await fetch(`${CONFIG.backendUrl}/api/draft-order`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    products: allProducts,
-                    discount_percent: combo.discount || 0
-                })
-            });
+            // Cupón dinámico vía nuestro backend (solo si tiene descuento configurado)
+            const couponPromise = (combo.discount > 0)
+                ? fetch(`${CONFIG.backendUrl}/api/create-coupon`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ discount_percent: combo.discount, combo_id: combo.id })
+                }).then(r => r.json()).catch(() => ({ success: false, coupon: null }))
+                : Promise.resolve({ success: false, coupon: null });
 
-            const data = await response.json();
+            // Esperar todo en paralelo
+            const [, couponData] = await Promise.all([Promise.all(cartPromises), couponPromise]);
 
-            if (data.success && data.checkout_url) {
-                // Éxito: mostrar feedback y redirigir al checkout con descuento aplicado
-                loadEl.style.display = 'none';
-                btn.style.display = 'none';
-                disclaimer.style.display = 'none';
-                successEl.style.display = 'block';
+            // PASO 3: Mostrar éxito y redirigir
+            loadEl.style.display = 'none';
+            btn.style.display = 'none';
+            disclaimer.style.display = 'none';
+            successEl.style.display = 'block';
+
+            const coupon = couponData?.coupon;
+            if (coupon) {
                 successEl.innerHTML = `✅ ¡Pack listo! Redirigiendo con ${combo.discount}% OFF...`;
-
                 setTimeout(() => {
-                    window.location.href = data.checkout_url;
-                }, 800);
+                    window.location.href = `/checkout/v3/start?coupon=${encodeURIComponent(coupon)}`;
+                }, 700);
             } else {
-                throw new Error(data.error || 'Response sin checkout_url');
+                // Sin cupón (descuento = 0 o backend caído) → abrir carrito normal
+                successEl.innerHTML = `✅ ¡Pack agregado! <a href="/cart">Ver carrito →</a>`;
+                const cartTrigger = document.querySelector(CONFIG.cartTriggerSelector);
+                if (cartTrigger) setTimeout(() => cartTrigger.click(), 400);
             }
 
         } catch (e) {
-            console.warn('[SalesBooster] Draft Order falló, usando carrito normal:', e.message);
-
-            // Fallback: agregar al carrito normal sin descuento
-            try {
-                const variantInput = document.querySelector('input[name="variant_id"], select[name="variant_id"]');
-                const variantId = variantInput ? variantInput.value : main.variantId;
-
-                const p1 = new URLSearchParams({ add_to_cart: main.id, quantity: 1 });
-                if (variantId) p1.append('variant_id', variantId);
-                await fetch(CONFIG.cartEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p1.toString(), redirect: 'manual' });
-
-                for (const p of partners) {
-                    const p2 = new URLSearchParams({ add_to_cart: p.id, quantity: 1 });
-                    await fetch(CONFIG.cartEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p2.toString(), redirect: 'manual' });
-                }
-
-                loadEl.style.display = 'none';
-                btn.style.display = 'none';
-                successEl.style.display = 'block';
-                successEl.innerHTML = `✅ ¡Pack agregado! <a href="/cart">Ver carrito →</a>`;
-
-                const cartTrigger = document.querySelector(CONFIG.cartTriggerSelector);
-                if (cartTrigger) setTimeout(() => cartTrigger.click(), 400);
-
-            } catch (e2) {
-                loadEl.style.display = 'none';
-                textEl.style.display = 'inline';
-                textEl.textContent = '⚠️ Error. Intenta de nuevo.';
-                btn.disabled = false;
-            }
+            console.warn('[SalesBooster] Error:', e.message);
+            loadEl.style.display = 'none';
+            textEl.style.display = 'inline';
+            textEl.textContent = '⚠️ Error al agregar. Intenta de nuevo.';
+            btn.disabled = false;
         }
     }
+
 
     // ─── STYLES ───
     function injectStyles() {
