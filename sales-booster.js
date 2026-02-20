@@ -211,16 +211,18 @@
                 // Copiar al portapapeles y redirigir
                 try { navigator.clipboard.writeText(coupon); } catch (e) { }
 
-                successEl.innerHTML = `✅ ¡Pack listo! Cupón <b>${coupon}</b> copiado.<br>Redirigiendo...`;
+                successEl.innerHTML = `✅ ¡Pack listo! Cupón <b>${coupon}</b> copiado.<br>Yendo al carrito...`;
 
                 setTimeout(() => {
-                    // Redirigir a /checkout LIMPIO para evitar errores 404 por parámetros inválidos
-                    window.location.href = '/checkout';
+                    // Redirigir al /cart que siempre existe y permite iniciar el checkout correctamente
+                    window.location.href = '/cart';
                 }, 1500);
             } else {
                 successEl.innerHTML = `✅ ¡Pack agregado al carrito!`;
                 setTimeout(() => {
-                    window.location.href = '/checkout';
+                    const trigger = document.querySelector(CONFIG.cartTriggerSelector);
+                    if (trigger) trigger.click();
+                    else window.location.href = '/cart';
                 }, 500);
             }
 
