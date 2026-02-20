@@ -159,7 +159,8 @@
 
         widget.querySelector('#sb-cta-btn').addEventListener('click', function (e) {
             e.preventDefault();
-            addComboToCart(products, widget, combo);
+            // Pasar allForDisplay para asegurarse de agregar TANTO el producto principal COMO los extras
+            addComboToCart(allForDisplay, widget, combo);
         });
 
         injectStyles();
@@ -184,20 +185,20 @@
             const currentProductId = document.querySelector('input[name="add_to_cart"]')?.value;
 
             // Agregar TODOS los productos del combo al carrito en secuencia
-            // (fetch sin redirect:'manual' → Tiendanube guarda el carrito correctamente)
             for (const p of products) {
                 const params = new URLSearchParams({ add_to_cart: p.id, quantity: 1 });
+                // Si el producto a agregar es el que el usuario está viendo, le adjuntamos su variante elegida
                 if (String(p.id) === String(currentProductId) && currentVariantId) {
                     params.append('variant_id', currentVariantId);
                 } else if (p.variant_id) {
+                    // Si es el producto secundario y tiene una variante asignada, la usamos
                     params.append('variant_id', p.variant_id);
                 }
+
                 await fetch(CONFIG.cartEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: params.toString()
-                    // Sin redirect:'manual' — fetch sigue el 302 internamente, el browser NO navega,
-                    // y Tiendanube guarda el producto en la sesión del carrito correctamente.
                 });
             }
 
@@ -216,16 +217,14 @@
                 successEl.innerHTML = `✅ ¡Pack listo! Cupón <b>${coupon}</b> copiado.<br>Yendo al carrito...`;
 
                 setTimeout(() => {
-                    // Redirigir al cart Endpoint correcto que existe para evitar 404
                     window.location.href = CONFIG.cartEndpoint;
                 }, 1500);
             } else {
-                successEl.innerHTML = `✅ ¡Pack agregado al carrito!`;
+                successEl.innerHTML = `✅ ¡Pack agregado al carrito!<br>Yendo al carrito...`;
                 setTimeout(() => {
-                    const trigger = document.querySelector(CONFIG.cartTriggerSelector);
-                    if (trigger) trigger.click();
-                    else window.location.href = CONFIG.cartEndpoint;
-                }, 500);
+                    // Redirigimos siempre directo al carrito para no accionar modales incorrectos (ej. el buscador)
+                    window.location.href = CONFIG.cartEndpoint;
+                }, 1000);
             }
 
         } catch (e) {
