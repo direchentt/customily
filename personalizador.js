@@ -1,310 +1,410 @@
-console.log("🚀 Personalizador Mágico v2.1: UI/UX Renacido");
+console.log("🚀 Customily Evolution v3.1: Full DOM Control");
 
-/*
- * Este script reemplaza visualmente el sistema de variantes de Tiendanube
- * creando una interfaz moderna estilo App, pero secretamente sigue controlando
- * los selects originales para que el carrito, precio y stock funcionen perfecto.
- */
+// INYECCIÓN DE ESTILOS CSS (Estilos Premium)
+const styles = `
+    /* Contenedor Principal */
+    .custom-variant-container { 
+        margin: 25px 0; 
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+    }
+    
+    /* Títulos de Variantes */
+    .custom-variant-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .custom-variant-title { 
+        font-size: 13px; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        color: #111; 
+        letter-spacing: 0.5px; 
+    }
+    .custom-variant-selected {
+        font-size: 13px;
+        font-weight: 400;
+        color: #666;
+        text-transform: capitalize;
+    }
 
-// SELECTORES CLAVE (Tiendanube varía según el tema, estos son los más comunes)
-const SELECTOR_FORMULARIO = '.js-product-form, .js-addtocart-form, form[action*="/cart/add"]';
-const SELECTOR_VARIATION_CONTAINER = '.js-product-variants, .product-variants'; // Contenedor original
-const SELECTOR_IMAGEN = '.js-product-slide-img, .product-image-container img';
+    /* Grilla de Opciones */
+    .custom-variant-grid { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 10px; 
+        margin-bottom: 24px; 
+    }
+    
+    /* Botones Tipo PILL (Texto) */
+    .custom-pill {
+        padding: 10px 20px; 
+        border: 1px solid #e0e0e0; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        background: #fff; 
+        color: #333; 
+        font-size: 14px; 
+        font-weight: 500;
+        transition: all 0.2s ease;
+        min-width: 60px;
+        text-align: center;
+    }
+    .custom-pill:hover { 
+        border-color: #999; 
+    }
+    .custom-pill.active { 
+        background: #111; 
+        color: #fff; 
+        border-color: #111; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    
+    /* Botones Tipo SWATCH (Color) */
+    .custom-swatch {
+        width: 42px; 
+        height: 42px; 
+        border-radius: 50%; 
+        cursor: pointer;
+        border: 2px solid #fff; 
+        box-shadow: 0 0 0 1px #ddd; 
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+    }
+    .custom-swatch:hover { 
+        transform: scale(1.1); 
+        box-shadow: 0 0 0 1px #999;
+    }
+    .custom-swatch.active { 
+        box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111; /* Doble anillo */
+        transform: scale(1.15); 
+    }
+    .custom-swatch.white-swatch { 
+        background: #fff; 
+        background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+        background-size: 10px 10px; /* Patrón ajedrez sutil para blanco */
+    }
 
-// MAPA DE COLORES INTELIGENTE (Para pintar los botoncitos)
-const MAPA_COLORES = {
+    /* Panel Texto Personalizado */
+    .custom-text-panel {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        border: 1px solid #eee;
+    }
+    .custom-input-text {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        transition: border-color 0.2s;
+    }
+    .custom-input-text:focus {
+        border-color: #111;
+        outline: none;
+    }
+
+    /* Overlay Texto en Imagen */
+    .custom-overlay-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-90deg);
+        color: white;
+        font-size: 40px; /* Base, responsivo */
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        pointer-events: none;
+        z-index: 100;
+        font-family: 'Helvetica', sans-serif;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    /* Ajuste Móvil */
+    @media (max-width: 480px) {
+        .custom-pill { flex: 1; } 
+        .custom-overlay-text { font-size: 24px; }
+    }
+`;
+
+// Insertar Estilos
+const styleSheet = document.createElement("style");
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
+
+// MAPA DE COLORES EXTENDIDO
+const COLOR_MAP = {
     'negro': '#000000', 'black': '#000000', 'preto': '#000000',
     'blanco': '#ffffff', 'white': '#ffffff', 'branco': '#ffffff',
     'rojo': '#D32F2F', 'red': '#D32F2F', 'vermelho': '#D32F2F',
-    'azul': '#1976D2', 'blue': '#1976D2',
-    'verde': '#388E3C', 'green': '#388E3C',
-    'rosa': '#E91E63', 'pink': '#E91E63',
+    'bordo': '#800000', 'burgundy': '#800000',
+    'azul': '#1976D2', 'blue': '#1976D2', 'navy': '#0D47A1', 'celeste': '#81D4FA',
+    'verde': '#388E3C', 'green': '#388E3C', 'mint': '#B2DFDB', 'oliva': '#556B2F',
+    'rosa': '#E91E63', 'pink': '#E91E63', 'rose': '#FFCDD2', 'fucsia': '#FF00FF',
     'amarillo': '#FBC02D', 'yellow': '#FBC02D',
-    'gris': '#9E9E9E', 'grey': '#9E9E9E', 'gray': '#9E9E9E',
-    'naranja': '#F57C00', 'orange': '#F57C00',
-    'violeta': '#8E24AA', 'purple': '#8E24AA',
-    'marron': '#795548', 'brown': '#795548'
+    'naranja': '#F57C00', 'orange': '#F57C00', 'coral': '#FF7F50',
+    'gris': '#9E9E9E', 'grey': '#9E9E9E', 'silver': '#C0C0C0', 'plata': '#C0C0C0',
+    'violeta': '#8E24AA', 'purple': '#8E24AA', 'lavender': '#E1BEE7', 'lila': '#D8BFD8',
+    'marron': '#795548', 'brown': '#795548', 'beige': '#F5F5DC', 'camel': '#C19A6B',
+    'crema': '#FFFDD0', 'cream': '#FFFDD0', 'nude': '#E3BC9A',
+    'dorado': '#FFD700', 'gold': '#FFD700',
+    'transparente': 'transparent', 'clear': 'transparent'
 };
 
-function iniciarUI() {
+let activeText = "";
+
+function initSystem() {
     if (!window.location.pathname.includes('/productos/')) return;
 
-    // Esperar a que LS (LoadStore) esté listo
-    if (typeof LS === 'undefined' || !LS.variants) {
-        setTimeout(iniciarUI, 500);
+    // Buscar el contenedor original de variantes (Tiendanube suele usar .js-product-variants)
+    const originalVariantContainer = document.querySelector('.js-product-variants, .product-variants');
+
+    // Si no hay variantes, al menos dibujamos el personalizador de texto
+    if (!originalVariantContainer) {
+        initTextFieldOnly();
         return;
     }
 
-    console.log("🔎 Variantes detectadas:", LS.variants);
+    // Evitar duplicar nuestra UI
+    if (document.getElementById('custom-ui-root')) return;
 
-    const form = document.querySelector(SELECTOR_FORMULARIO);
-    const containerOriginal = document.querySelector(SELECTOR_VARIATION_CONTAINER);
+    console.log("🎨 Iniciando Transformación UI...");
 
-    if (form && containerOriginal && !document.getElementById('ui-renacida')) {
+    // Ocultar nativo (display none)
+    // Importante: No removemos, solo ocultamos para que siga funcionando la lógica interna de TN
+    originalVariantContainer.style.display = 'none';
 
-        // 1. OCULTAR LO FEO (Pero no borrarlo, lo necesitamos)
-        containerOriginal.style.display = 'none'; // Ocultar selects nativos
-        if (containerOriginal.parentElement.querySelector('label')) {
-            // Ocultar labels sueltos si los hay
-            containerOriginal.parentElement.querySelectorAll('label').forEach(l => l.style.display = 'none');
+    // También ocultar labels sueltos que suelen quedar arriba
+    const looseLabels = originalVariantContainer.parentElement.querySelectorAll('label:not(.custom-label)');
+    looseLabels.forEach(l => l.style.display = 'none');
+
+    // Crear Contenedor Raíz
+    const root = document.createElement('div');
+    root.id = 'custom-ui-root';
+    root.className = 'custom-variant-container';
+
+    // Analizar los SELECTS originales
+    const selects = originalVariantContainer.querySelectorAll('select');
+
+    selects.forEach((select) => {
+        const wrapper = document.createElement('div');
+
+        // Obtener Nombre (Color, Talle, etc.)
+        let labelText = "Opción";
+        // Intentar leer el label asociado o data attributes
+        const parentGroup = select.closest('.js-product-variants-group, .product-variants-group');
+        if (parentGroup) {
+            const lbl = parentGroup.querySelector('label');
+            if (lbl) labelText = lbl.innerText.replace(':', '').trim();
         }
 
-        // 2. CONSTRUIR LO NUEVO
-        const uiContainer = document.createElement('div');
-        uiContainer.id = 'ui-renacida';
-        uiContainer.style.marginBottom = "25px";
-        uiContainer.style.fontFamily = "'Helvetica', sans-serif";
+        // Header de la variante (Nombre + Selección actual)
+        const header = document.createElement('div');
+        header.className = 'custom-variant-header';
 
-        // Analizar qué propiedades tiene este producto (Color, Talle, Modelo?)
-        // Tiendanube guarda esto en LS.variants[0].option_values es un array de {option: id, box_type}
-        // Pero es más fácil analizar los selects del HTML original para saber los nombres.
+        const title = document.createElement('span');
+        title.className = 'custom-variant-title';
+        title.innerText = labelText;
 
-        // Vamos a deducirlo de las variantes:
-        // LS.variants es un array de objetos variante. Cada una tiene "option0", "option1", etc.
-        // Necesitamos saber qué ES "option0".
-        // Normalmente Tiendanube expone `LS.product.options` que nos dice los nombres.
+        const selectedValueDisplay = document.createElement('span');
+        selectedValueDisplay.className = 'custom-variant-selected';
 
-        let opciones = [];
-        if (LS.product && LS.product.options) {
-            opciones = LS.product.options; // Ej: ["Color", "Talle"]
-        } else {
-            // Fallback: tratar de adivinar por los selects
-            const selects = containerOriginal.querySelectorAll('select');
-            selects.forEach((s, index) => {
-                const label = s.closest('.js-product-variants-group')?.querySelector('label')?.innerText || `Opción ${index + 1}`;
-                opciones.push(label.replace(':', '').trim());
-            });
-        }
+        header.appendChild(title);
+        header.appendChild(selectedValueDisplay);
+        wrapper.appendChild(header);
 
-        console.log("🛠 Opciones a dibujar:", opciones);
+        // Grid de Opciones
+        const grid = document.createElement('div');
+        grid.className = 'custom-variant-grid';
 
-        // Por cada opción (Ej: Color), construimos un bloque de botones
-        opciones.forEach((nombreOpcion, index) => {
-            const opcionIndex = index; // 0, 1, 2...
+        // Detectar tipo (Color vs Texto)
+        const isColorType = /color|cor|colour/i.test(labelText);
 
-            // Obtener todos los valores posibles para esta opción (sin repetidos)
-            // Recorremos LS.variants y sacamos "option0", "option1"...
-            const valoresPosibles = [...new Set(LS.variants.map(v => v[`option${opcionIndex}`]))].filter(Boolean);
+        // Iterar opciones del select
+        Array.from(select.options).forEach(opt => {
+            if (!opt.value) return; // Skip placeholders
 
-            if (valoresPosibles.length > 0) {
-                // Crear Título de la Opción
-                const label = document.createElement('h4');
-                label.innerText = nombreOpcion.toUpperCase();
-                label.style.fontSize = "12px";
-                label.style.fontWeight = "bold";
-                label.style.color = "#888";
-                label.style.letterSpacing = "1px";
-                label.style.margin = "0 0 10px 0";
-                uiContainer.appendChild(label);
+            const val = opt.text.trim(); // Nombre visible (Rojo, S, M, XL)
+            const cleanVal = val.split('(')[0].trim(); // Limpiar "(Sin Stock)"
 
-                // Contenedor de Botones (Pills o Círculos)
-                const grid = document.createElement('div');
-                grid.style.display = "flex";
-                grid.style.flexWrap = "wrap";
-                grid.style.gap = "10px";
-                grid.style.marginBottom = "20px";
+            // Crear Botón
+            const btn = document.createElement('div');
+            btn.title = cleanVal;
 
-                valoresPosibles.forEach(valor => {
-                    const btn = document.createElement('div');
-                    btn.innerText = valor;
-                    btn.classList.add(`btn-option-${opcionIndex}`); // Clase para control
-                    btn.dataset.valor = valor;
+            if (isColorType) {
+                btn.className = 'custom-swatch';
+                const hex = getHexColor(cleanVal);
 
-                    // Estilos Base Clean & Modern
-                    btn.style.padding = "10px 18px";
-                    btn.style.border = "1px solid #e0e0e0";
-                    btn.style.borderRadius = "30px"; // Píldora
-                    btn.style.cursor = "pointer";
-                    btn.style.fontSize = "14px";
-                    btn.style.transition = "all 0.2s";
-                    btn.style.background = "#fff";
-                    btn.style.color = "#333";
-
-                    // INTELIGENCIA DE COLOR 🎨
-                    // Si la opción se llama "Color" (o similar) tratamos de pintarlo
-                    const esColor = /color|cor/Ii.test(nombreOpcion);
-                    const colorHex = MAPA_COLORES[valor.toLowerCase().trim()];
-
-                    if (esColor && colorHex) {
-                        btn.innerText = ""; // Sin texto dentro
-                        btn.style.width = "35px";
-                        btn.style.height = "35px";
-                        btn.style.borderRadius = "50%"; // Círculo perfecto
-                        btn.style.background = colorHex;
-                        btn.title = valor; // Tooltip
-
-                        // Si es blanco, ponerle un bordecito para que se vea
-                        if (colorHex === '#ffffff') btn.style.border = "1px solid #ccc";
-                        else btn.style.border = "1px solid transparent";
-                    }
-
-                    // Click -> Seleccionar
-                    btn.addEventListener('click', () => {
-                        // 1. Visual: Marcar como activo
-                        grid.querySelectorAll('div').forEach(b => {
-                            b.style.borderColor = "#e0e0e0";
-                            b.style.background = esColor && MAPA_COLORES[b.dataset.valor.toLowerCase()] ? MAPA_COLORES[b.dataset.valor.toLowerCase()] : "#fff";
-                            b.style.color = "#333";
-                            b.style.transform = "scale(1)";
-                            if (esColor && b.dataset.valor.toLowerCase() === 'blanco') b.style.border = "1px solid #ccc";
-                        });
-
-                        // Estilo Activo
-                        if (esColor && colorHex) {
-                            btn.style.transform = "scale(1.15)";
-                            btn.style.borderColor = "#000"; // Anillo de selección
-                            btn.style.boxShadow = "0 0 0 2px #fff, 0 0 0 4px #000"; // Doble anillo Pro
-                        } else {
-                            btn.style.background = "#000";
-                            btn.style.borderColor = "#000";
-                            btn.style.color = "#fff";
-                        }
-
-                        // 2. Lógica: Avisar al sistema nativo
-                        seleccionarVarianteNativa(opcionIndex, valor);
-
-                        // 3. Reactivar nuestro "Parásito de Texto" (para ajustar a nueva foto)
-                        setTimeout(actualizarTextoFlotante, 300);
-                    });
-
-                    grid.appendChild(btn);
-                });
-
-                uiContainer.appendChild(grid);
-
-                // Autoseleccionar el primero (o el que esté seleccionado ya)
-                // TODO: Leer estado inicial
-                if (grid.firstChild) grid.firstChild.click();
+                if (hex === 'transparent') {
+                    btn.classList.add('white-swatch'); // Usar patrón ajedrez
+                } else {
+                    btn.style.backgroundColor = hex;
+                    if (hex === '#ffffff') btn.classList.add('white-swatch'); // Borde sutil
+                }
+            } else {
+                btn.className = 'custom-pill';
+                btn.innerText = cleanVal;
             }
+
+            // Estado Inicial: Activo si coincide con el select original
+            if (select.value === opt.value) {
+                btn.classList.add('active');
+                selectedValueDisplay.innerText = cleanVal;
+                updateProductImageOverlay(cleanVal); // Sincronizar overlay inicial
+            }
+
+            // Click Handler
+            btn.addEventListener('click', () => {
+                // 1. UI Update
+                grid.querySelectorAll('.active').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedValueDisplay.innerText = cleanVal;
+
+                // 2. Native Sync (Truco: Cambiar select y disparar evento)
+                select.value = opt.value;
+                const event = new Event('change', { bubbles: true });
+                select.dispatchEvent(event);
+
+                // 3. Re-sincronizar Overlay de Texto (Esperar cambio de foto TN)
+                setTimeout(() => updateProductImageOverlay(), 400); // 400ms delay para dar tiempo a TN
+            });
+
+            grid.appendChild(btn);
         });
 
-        // REINSERCIÓN DEL PANEL DE TEXTO PERSONAL
-        // (El que hicimos antes, pero ahora estilizado para encajar)
-        const panelTexto = construirPanelTexto();
-        uiContainer.appendChild(panelTexto);
+        wrapper.appendChild(grid);
+        root.appendChild(wrapper);
+    });
 
-        // Insertar todo donde estaban las variantes viejas
-        containerOriginal.parentNode.insertBefore(uiContainer, containerOriginal);
+    // Añadir Panel de Texto Personalizado
+    const textPanel = createTextPanel();
+    root.appendChild(textPanel);
 
-        // Iniciar el texto flotante
-        actualizarTextoFlotante();
-    }
+    // Insertar nuestra UI antes del container original
+    originalVariantContainer.parentNode.insertBefore(root, originalVariantContainer);
+
+    // Iniciar vigilancia
+    startImageWatch();
 }
 
-function seleccionarVarianteNativa(indiceOpcion, valor) {
-    // Aquí ocurre la magia sucia.
-    // Buscamos los <select> originales y cambiamos su valor.
-    const containerSelects = document.querySelector(SELECTOR_VARIATION_CONTAINER);
-    const selects = containerSelects.querySelectorAll('select');
+function createTextPanel() {
+    const p = document.createElement('div');
+    p.className = 'custom-text-panel';
 
-    if (selects[indiceOpcion]) {
-        selects[indiceOpcion].value = valor;
-        // Disparar evento 'change' para que Tiendanube sepa que cambiamos algo
-        // y actualice precios, fotos y stock.
-        selects[indiceOpcion].dispatchEvent(new Event('change', { bubbles: true }));
-        console.log(`🤖 Sincronizado: Opción ${indiceOpcion} -> ${valor}`);
-    }
-}
-
-function construirPanelTexto() {
-    const div = document.createElement('div');
-    div.style.marginTop = "30px";
-    div.style.paddingTop = "20px";
-    div.style.borderTop = "1px solid #eee";
-
-    const label = document.createElement('h4');
-    label.innerText = "✍️ TEXTO PERSONALIZADO";
-    label.style.fontSize = "12px";
-    label.style.fontWeight = "bold";
-    label.style.color = "#888";
-    label.style.letterSpacing = "1px";
-    label.style.marginBottom = "10px";
-    div.appendChild(label);
+    const h = document.createElement('div');
+    h.className = 'custom-variant-title';
+    h.innerText = '✍️ PERSONALIZACIÓN (Opcional)';
+    h.style.marginBottom = '10px';
 
     const input = document.createElement('input');
-    input.type = "text";
-    input.placeholder = "Escribe tu nombre... (Máx 12)";
+    input.type = 'text';
+    input.className = 'custom-input-text';
+    input.placeholder = 'Escribe tu nombre... (Máx 12)';
     input.maxLength = 12;
-    input.style.width = "100%";
-    input.style.padding = "12px";
-    input.style.border = "1px solid #ccc";
-    input.style.borderRadius = "8px"; // Bordes suaves
-    input.style.fontSize = "16px";
-    input.style.outline = "none";
-    input.style.transition = "border 0.2s";
-
-    input.onfocus = () => input.style.border = "1px solid #000";
-    input.onblur = () => input.style.border = "1px solid #ccc";
 
     input.addEventListener('input', (e) => {
-        window.textoPersonalizadoGlobal = e.target.value.toUpperCase();
-        actualizarTextoFlotante();
-
-        // Guardar en input oculto
-        let hidden = document.getElementById('hidden-custom-text');
-        if (!hidden) {
-            hidden = document.createElement('input');
-            hidden.type = "hidden";
-            hidden.id = "hidden-custom-text";
-            hidden.name = "properties[Texto]";
-            document.querySelector(SELECTOR_FORMULARIO).appendChild(hidden);
-        }
-        hidden.value = window.textoPersonalizadoGlobal;
+        activeText = e.target.value.toUpperCase();
+        updateProductImageOverlay();
+        syncWithCart(activeText);
     });
 
-    div.appendChild(input);
-    return div;
+    p.appendChild(h);
+    p.appendChild(input);
+    return p;
 }
 
-function actualizarTextoFlotante() {
-    // Lógica para pegar el texto en la imagen ACTIVA
-    const texto = window.textoPersonalizadoGlobal || "TU NOMBRE";
+function getHexColor(name) {
+    const key = name.toLowerCase().replace(/\s/g, ''); // "Azul Marino" -> "azulmarino"
+    // Búsqueda exacta primero
+    if (COLOR_MAP[key]) return COLOR_MAP[key];
 
-    // Buscar imagen visible
-    const imgs = document.querySelectorAll(SELECTOR_IMAGEN);
-    let imgActiva = null;
-    imgs.forEach(img => {
-        if (img.offsetParent !== null) imgActiva = img;
+    // Búsqueda parcial (ej: "Rojo Intenso" busca "rojo")
+    for (const k in COLOR_MAP) {
+        if (key.includes(k)) return COLOR_MAP[k];
+    }
+    return '#eee'; // Gris fallback
+}
+
+// LÓGICA DE OVERLAY INTELIGENTE (PARÁSITO)
+function updateProductImageOverlay() {
+    const text = activeText || "TU NOMBRE";
+
+    // Encontrar imagen visible (Activa)
+    // TN suele usar slick-active o swiper-slide-active, o simplemente la img visible
+    const images = document.querySelectorAll('.js-product-slide-img, .product-image-container img');
+    let targetContainer = null;
+
+    images.forEach(img => {
+        // Truco: offsetParent no es null si es visible
+        // Y asegurarnos que es lo suficientemente grande (no thumbnail)
+        if (img.offsetParent !== null && img.clientWidth > 100) {
+            targetContainer = img.parentElement;
+        }
     });
 
-    // Fallback
-    if (!imgActiva && imgs.length > 0) imgActiva = imgs[0];
+    if (!targetContainer) return; // No encontramos imagen activa
 
-    if (imgActiva) {
-        const contenedor = imgActiva.parentElement;
-        if (getComputedStyle(contenedor).position === 'static') contenedor.style.position = 'relative';
+    // Preparar contenedor
+    if (getComputedStyle(targetContainer).position === 'static') {
+        targetContainer.style.position = 'relative';
+    }
 
-        // Borrar anterior
-        const viejo = document.getElementById('overlay-texto-flotante');
-        if (viejo) viejo.remove();
+    // Limpiar anterior
+    const old = targetContainer.querySelector('.custom-overlay-text');
+    if (old) old.remove();
 
-        // Crear nuevo
-        const overlay = document.createElement('div');
-        overlay.id = 'overlay-texto-flotante';
-        overlay.innerText = texto;
-        overlay.style.position = "absolute";
-        overlay.style.top = "50%";
-        overlay.style.left = "50%";
-        overlay.style.transform = "translate(-50%, -50%) rotate(-90deg)"; // Vertical
-        overlay.style.color = "white";
-        overlay.style.fontSize = "40px"; // Auto-escalable idealmente
-        overlay.style.fontWeight = "bold";
-        overlay.style.textShadow = "0 2px 4px rgba(0,0,0,0.5)";
-        overlay.style.pointerEvents = "none";
-        overlay.style.zIndex = "100";
-        overlay.style.fontFamily = "sans-serif";
-        overlay.style.letterSpacing = "2px";
+    // Crear nuevo overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-overlay-text';
+    overlay.innerText = text;
 
-        // Solo mostrar si hay texto escrito por usuario (opcional)
-        // overlay.style.opacity = window.textoPersonalizadoGlobal ? "1" : "0.5";
+    // Visibilidad (si no escribió nada, mostrar semi-transparente como ejemplo)
+    overlay.style.opacity = activeText ? '1' : '0.6';
 
-        contenedor.appendChild(overlay);
+    targetContainer.appendChild(overlay);
+}
+
+function syncWithCart(text) {
+    // Buscar form de compra
+    const form = document.querySelector('.js-product-form, .js-addtocart-form, form[action*="/cart/add"]');
+    if (!form) return;
+
+    let hidden = document.getElementById('custom-hidden-input');
+    if (!hidden) {
+        hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.id = 'custom-hidden-input';
+        hidden.name = 'properties[Personalización]'; // Estándar Shopify/TN
+        form.appendChild(hidden);
+    }
+    hidden.value = text;
+}
+
+function initTextFieldOnly() {
+    // Fallback si no hay variantes: mostrar solo campo de texto
+    const form = document.querySelector('.js-product-form');
+    if (form && !document.getElementById('custom-ui-root')) {
+        const root = document.createElement('div');
+        root.id = 'custom-ui-root';
+        root.appendChild(createTextPanel());
+        form.insertBefore(root, form.querySelector('.js-addtocart'));
+        startImageWatch();
     }
 }
 
-// Iniciar todo
+function startImageWatch() {
+    // Vigilar cambios de imagen (clicks en thumbnails o flechas)
+    setInterval(() => updateProductImageOverlay(), 800);
+}
+
+// ARRANQUE
 if (document.readyState === 'loading') {
-    window.addEventListener('DOMContentLoaded', iniciarUI);
+    document.addEventListener('DOMContentLoaded', initSystem);
 } else {
-    iniciarUI();
+    initSystem();
 }
