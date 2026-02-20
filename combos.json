@@ -1,1 +1,57 @@
-[]
+[
+  {
+    "id": "combo_1771561275465",
+    "label": "Pack invierno",
+    "badge": "Más vendido",
+    "discount": 20,
+    "triggers": [
+      "295871862",
+      "295871865",
+      "295871869"
+    ],
+    "products": [
+      {
+        "id": "295871862",
+        "name": "Cap Baku",
+        "price": "$120.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/monogrambrownbeanie_drop3_1-jpg-9623c0b5f75c810bc217713777420620-480-0.webp"
+      },
+      {
+        "id": "295871865",
+        "name": "Cap Dtox",
+        "price": "$140.000,00",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/rawgreybeanie_drop2_1-jpg-42a326d14da211f85917713777001134-480-0.webp"
+      },
+      {
+        "id": "295871869",
+        "name": "Cap Love",
+        "price": "$110.000,00",
+        "image": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+      }
+    ]
+  },
+  {
+    "id": "combo_1771561310887",
+    "label": "Pack íntimo",
+    "badge": "últimas unidades",
+    "discount": 25,
+    "triggers": [
+      "295871879",
+      "295871885"
+    ],
+    "products": [
+      {
+        "id": "295871879",
+        "name": "Boxers Cafeína 2.x",
+        "price": "$70.000,00",
+        "image": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+      },
+      {
+        "id": "295871885",
+        "name": "Boxers Cerami 2.x",
+        "price": "$70.000,00",
+        "image": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+      }
+    ]
+  }
+]

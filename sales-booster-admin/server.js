@@ -36,18 +36,28 @@ app.get('/api/products', async (req, res) => {
         $('.item-product, .js-item-product').each((i, el) => {
             const $el = $(el);
             const id = $el.attr('data-product-id');
-            // Nombre: a veces en .item-name, a veces en h3 a
             const name = $el.find('.item-name, .product-name, h3').first().text().trim();
 
-            // Imagen: Tiendanube usa lazy loading data-src
-            let img = $el.find('img').attr('data-src') || $el.find('img').attr('src');
-            if (img && img.startsWith('//')) img = 'https:' + img;
+            // Imagen: buscar en múltiples atributos, evitando placeholders base64
+            let img = null;
+            const imgEl = $el.find('img').first();
+            const candidates = [
+                imgEl.attr('data-src'),
+                imgEl.attr('data-srcset')?.split(' ')[0],
+                imgEl.attr('src'),
+            ];
+            for (const c of candidates) {
+                if (c && !c.startsWith('data:') && c.length > 10) {
+                    img = c.startsWith('//') ? 'https:' + c : c;
+                    break;
+                }
+            }
 
             // Precio
             const price = $el.find('.item-price, .price').text().trim();
 
             if (id && name) {
-                products.push({ id, name, price, image: img });
+                products.push({ id, name, price, image: img || '' });
             }
         });
 
