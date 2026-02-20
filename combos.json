@@ -1,16 +1,1 @@
-{
-  "123456789": "987654321",
-  "295871862": {
-    "id": "295871865",
-    "name": "Cap Dtox",
-    "price": "$140.000,00",
-    "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/rawgreybeanie_drop2_1-jpg-42a326d14da211f85917713777001134-480-0.webp"
-  },
-  "295871885": {
-    "id": "295871879",
-    "name": "Boxers Cafeína 2.x",
-    "price": "$70.000,00",
-    "image": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
-  },
-  "ejemplo_id_1": "ejemplo_id_2"
-}
+[]
