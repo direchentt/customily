@@ -1,260 +1,68 @@
 [
   {
-    "id": "combo_1771561275465",
-    "label": "Pack invierno",
-    "badge": "Más vendido",
-    "coupon": "PACK20",
-    "discount": 20,
-    "triggers": [
-      "295871862",
-      "295871865",
-      "295871869"
-    ],
-    "products": [
-      {
-        "id": "295871862",
-        "name": "Cap Baku",
-        "price": "$120.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/monogrambrownbeanie_drop3_1-jpg-9623c0b5f75c810bc217713777420620-480-0.webp",
-        "variant_id": "1321250320"
-      },
-      {
-        "id": "295871865",
-        "name": "Cap Dtox",
-        "price": "$140.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/rawgreybeanie_drop2_1-jpg-42a326d14da211f85917713777001134-480-0.webp",
-        "variant_id": "1321250333"
-      },
-      {
-        "id": "295871869",
-        "name": "Cap Love",
-        "price": "$110.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/thearchivalbeanie_drop10_1_e06ba695-25e9-407b-a6b9-96b3bd43e29f-jpg-30cfcd0ebb3c3b08d517713779168440-480-0.webp",
-        "variant_id": "1321250346"
-      }
-    ]
-  },
-  {
-    "id": "combo_1771561310887",
-    "label": "Pack íntimo",
-    "badge": "Últimas unidades",
-    "coupon": "PACK25",
-    "discount": 25,
-    "triggers": [
-      "295871879",
-      "295871885"
-    ],
-    "products": [
-      {
-        "id": "295871879",
-        "name": "Boxers Cafeína 2.x",
-        "price": "$70.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/cafeina-boxer-frente-baja_0196ae4a-59e2-4c5d-834b-6e073e06d02c-jpg-a0f9cfdf23ab23d3cd17713777001134-480-0.webp",
-        "variant_id": "1321250374"
-      },
-      {
-        "id": "295871885",
-        "name": "Boxers Cerami 2.x",
-        "price": "$70.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/cerami-boxer-frente-baja_5278c3e5-c649-4b2d-9b42-6046ae5f0680-jpg-bb20a4f55cedd0c52a17713777001134-480-0.webp",
-        "variant_id": "1321250392"
-      }
-    ]
-  },
-  {
-    "id": "combo_1771561678239",
-    "label": "Pack Bags",
-    "badge": "Más vendido",
-    "coupon": "PACK35",
-    "discount": 35,
-    "triggers": [
-      "295871887",
-      "295871890",
-      "295871898"
-    ],
-    "products": [
-      {
-        "id": "295871896",
-        "name": "Bag Arbutin",
-        "price": "$440.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/officebrownbag_sem50_1-64cf44e4aa0297472a17710381002451-240-0.webp",
-        "variant_id": "1321250422"
-      },
-      {
-        "id": "295871894",
-        "name": "Bag PHA",
-        "price": "$140.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/underbluetotebag_drop10_2_b200fe23-e519-4e42-bc69-a398542696ba-jpg-fed02c9f634769a67a17713776332318-240-0.webp",
-        "variant_id": "1321250417"
-      },
-      {
-        "id": "325084391",
-        "name": "Mini Bag Jvo",
-        "price": "$140.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/minibrowndufflebag_sem50_1-e2c440fdb4927187a617709462783279-240-0.webp",
-        "variant_id": "1441850950"
-      }
-    ]
-  },
-  {
-    "id": "combo_1771562325561",
-    "label": "Pack Ring Reishi",
-    "badge": "",
-    "coupon": "PACK10",
-    "discount": 10,
-    "triggers": [
-      "295871908",
-      "325098020"
-    ],
-    "products": [
-      {
-        "id": "295871908",
-        "name": "Ring Reishi",
-        "price": "$115.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_au_bracelet_sem_45_1-ad19170ea63c0410e517709460143266-240-0.webp",
-        "variant_id": "1321250454"
-      },
-      {
-        "id": "325098020",
-        "name": "Smash Charm",
-        "price": "$194.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-240-0.webp",
-        "variant_id": "1441664999"
-      }
-    ]
-  },
-  {
-    "id": "combo_1771562342627",
-    "label": "Pack Wallets",
-    "badge": "",
-    "coupon": "PACK75",
-    "discount": 75,
-    "triggers": [
-      "325083548",
-      "295871912"
-    ],
-    "products": [
-      {
-        "id": "295871912",
-        "name": "Chemical Wallet",
-        "price": "$140.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/essential-ecru-wallet-sem53_1-aa0c698dfa001a7b6417709460983187-240-0.webp",
-        "variant_id": "1321250462"
-      },
-      {
-        "id": "325083548",
-        "name": "Elemental Wallet",
-        "price": "$140.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/essential-burgundy-wallet-sem53_2-ca65a17f273022c2cc17709461357013-240-0.webp",
-        "variant_id": "1441648706"
-      }
-    ]
-  },
-  {
-    "id": "combo_1771564784455",
-    "label": "Pack SOFT LODGE",
-    "badge": "",
-    "coupon": "",
-    "discount": 10,
-    "triggers": [
-      "284137079",
-      "284137081"
-    ],
-    "products": [
-      {
-        "id": "284137079",
-        "name": "SOFT LODGE",
-        "price": "$230.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/standing-mirror-naturala0a6-f502e031f9ce3ca69017536460670278-240-0.webp",
-        "variant_id": "1272384571"
-      },
-      {
-        "id": "284137081",
-        "name": "PEARL BOWL",
-        "price": "$85.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/yuki-wood-natural-0165a7-2e34206b97802f2d4417536460562113-240-0.webp",
-        "variant_id": "1272384574"
-      }
-    ]
-  },
-  {
-    "id": "combo_1771564789236",
+    "id": "combo_1771625126042",
     "label": "Pack case PRO",
     "badge": "",
     "coupon": "",
-    "discount": 10,
+    "discount": 20,
     "triggers": [
-      "297465045",
-      "284137095"
+      "297465045"
     ],
     "products": [
       {
-        "id": "297465045",
-        "name": "case PRO",
-        "price": "$9.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/3fc12ee3-ef41-4f42-82ed-776685b58929-f403c030aaf086fae917593302159346-240-0.webp",
-        "variant_id": "1450902688"
-      },
-      {
-        "id": "284137095",
-        "name": "MINT BOWL",
-        "price": "$140.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/hanger-rack-black-scene-4586d-311e5fc9f963aeb05617536459086680-240-0.webp",
-        "variant_id": "1272384589"
+        "id": "297463683",
+        "name": "Smash Charm",
+        "price": "320000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-1024-1024.webp"
       }
     ]
   },
   {
-    "id": "combo_1771564809647",
-    "label": "Pack Boxers Cafeína 2.x",
+    "id": "combo_1771625145827",
+    "label": "Pack Chemical Wallet",
     "badge": "",
     "coupon": "",
     "discount": 10,
     "triggers": [
-      "295871879",
-      "295871873"
+      "295871912",
+      "295871908"
     ],
     "products": [
-      {
-        "id": "295871882",
-        "name": "Colgante Neck",
-        "price": "$140.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/pollenaunecklace_2-sem34-51ac077bc890d1acf617709463689265-240-0.webp",
-        "variant_id": "1321250387"
-      },
       {
         "id": "295871903",
         "name": "Key Chain",
-        "price": "$100.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/sneakerkeychain_sem50_1-8c97d25ff26de8a32317710379394936-240-0.webp",
-        "variant_id": "1321250441"
-      }
-    ]
-  },
-  {
-    "id": "combo_1771564819743",
-    "label": "Pack Ring Reishi",
-    "badge": "",
-    "coupon": "",
-    "discount": 10,
-    "triggers": [
-      "295871908",
-      "295871903"
-    ],
-    "products": [
-      {
-        "id": "301225727",
-        "name": "MIRROR ERRORR",
-        "price": "$115.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_au_bracelet_sem_45_1-ad19170ea63c0410e517709460143266-240-0.webp",
-        "variant_id": "1342256321"
+        "price": "190000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/sneakerkeychain_sem50_1-8c97d25ff26de8a32317710379394936-1024-1024.webp"
       },
       {
         "id": "297463683",
         "name": "Smash Charm",
-        "price": "$194.000,00",
-        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-240-0.webp",
-        "variant_id": "1327922942"
+        "price": "320000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-1024-1024.webp"
+      }
+    ]
+  },
+  {
+    "id": "combo_1771625218558",
+    "label": "Pack Bag PHA",
+    "badge": "",
+    "coupon": "",
+    "discount": 10,
+    "triggers": [
+      "295871894"
+    ],
+    "products": [
+      {
+        "id": "295871885",
+        "name": "Boxers Cerami 2.x",
+        "price": "230000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/pack1backdrop12-3965e2a0334acd764217710384773120-1024-1024.webp"
+      },
+      {
+        "id": "295871879",
+        "name": "Boxers Cafeína 2.x",
+        "price": "230000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_05_22_scuffers_03-f291981abcabb8bd3d17710384408030-1024-1024.webp"
       }
     ]
   }

@@ -82,13 +82,20 @@ app.get('/api/products', async (req, res) => {
             }
         }
 
-        const products = allProducts.map(p => ({
-            id: String(p.id),
-            variant_id: p.variants && p.variants.length > 0 ? String(p.variants[0].id) : null,
-            name: p.name.es || p.name.en || p.name.pt || Object.values(p.name)[0],
-            price: p.variants && p.variants.length > 0 ? `$${p.variants[0].price.replace('.00', '')}` : '',
-            image: p.images && p.images.length > 0 ? p.images[0].src : ''
-        })).filter(p => p.id && p.name);
+        const products = allProducts.map(p => {
+            const variant = p.variants && p.variants.length > 0 ? p.variants[0] : null;
+            const priceVal = variant && variant.price ? String(variant.price) : '0';
+            return {
+                id: String(p.id),
+                variant_id: variant ? String(variant.id) : null,
+                name: p.name.es || p.name.en || p.name.pt || Object.values(p.name)[0],
+                price: priceVal.replace('.00', ''), // El front-end ya le agrega el $ o formato
+                image: p.images && p.images.length > 0 && p.images[0].src
+                    ? p.images[0].src
+                    : 'https://cdn-icons-png.flaticon.com/512/1254/1254338.png',
+                published: p.published !== false
+            };
+        }).filter(p => p.id && p.name && p.published);
 
         console.log(`✅ ${products.length} productos listos desde la API.`);
         res.json(products);
