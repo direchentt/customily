@@ -183,22 +183,21 @@
             const currentVariantId = variantInput?.value;
             const currentProductId = document.querySelector('input[name="add_to_cart"]')?.value;
 
-            // Agregar TODOS los productos del combo al carrito en paralelo
-            const adds = products.map(p => {
+            // Agregar TODOS los productos del combo al carrito en secuencia
+            // (fetch sin redirect:'manual' → Tiendanube guarda el carrito correctamente)
+            for (const p of products) {
                 const params = new URLSearchParams({ add_to_cart: p.id, quantity: 1 });
-                // Si este producto es el que está en la página, usar el variant_id seleccionado
                 if (String(p.id) === String(currentProductId) && currentVariantId) {
                     params.append('variant_id', currentVariantId);
                 }
-                return fetch(CONFIG.cartEndpoint, {
+                await fetch(CONFIG.cartEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: params.toString(),
-                    redirect: 'manual'
+                    body: params.toString()
+                    // Sin redirect:'manual' — fetch sigue el 302 internamente, el browser NO navega,
+                    // y Tiendanube guarda el producto en la sesión del carrito correctamente.
                 });
-            });
-
-            await Promise.all(adds);
+            }
 
             // Mostrar éxito
             loadEl.style.display = 'none';
