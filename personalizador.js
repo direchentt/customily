@@ -1,91 +1,50 @@
-console.log("🚀 Customily V6.2: LAYOUT FIX + FULL WIDTH");
+console.log("🚀 Customily V6.3: LAYOUT ESCAPE DOCTRINE");
 
-// --- ESTILOS DE RESET ---
+// --- ESTILOS ---
 const styles = `
-    /* Contenedor Principal: Ocupa todo el ancho, bloque limpio */
+    /* Contenedor TOTALMENTE independiente */
     .custom-section-wrapper {
-        width: 100% !important;
         display: block !important;
-        margin-bottom: 20px !important;
+        width: 100% !important;
+        margin: 20px 0 !important;
         clear: both !important;
-        position: relative;
-        z-index: 10;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
 
-    /* Botón Activador */
     .custom-trigger-btn {
-        width: 100%; 
-        padding: 15px; 
-        background: #f8f8f8; 
-        border: 1px solid #ddd; 
-        color: #333;
-        font-weight: 700; 
-        font-size: 13px;
-        text-transform: uppercase; 
-        letter-spacing: 1px;
-        cursor: pointer; 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; /* Flecha a la derecha */
+        width: 100%; padding: 12px 15px; 
+        background: #fff; border: 1px solid #111; color: #111;
+        font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;
+        cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         transition: all 0.2s;
     }
-    .custom-trigger-btn:hover { background: #eee; }
-    .custom-trigger-btn.active { background: #222; color: #fff; border-color: #222; }
-    .custom-trigger-icon { font-size: 10px; transition: transform 0.3s; }
-    .custom-trigger-btn.active .custom-trigger-icon { transform: rotate(180deg); }
+    .custom-trigger-btn:hover { background: #111; color: #fff; }
+    .custom-trigger-btn.active { background: #111; color: #fff; border-bottom: none; }
 
-    /* Panel Desplegable */
     .custom-panel { 
-        display: none; 
-        background: #fff; 
-        border: 1px solid #ddd; 
-        border-top: none;
-        padding: 20px; 
-        box-sizing: border-box; /* Importante para no salirse */
-    }
-    .custom-panel.visible { display: block; animation: slideIn 0.2s ease-out; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Inputs y Controles al 100% */
-    .custom-form-group { margin-bottom: 15px; }
-    .custom-label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; color: #666; }
-    
-    .custom-input-full { 
-        width: 100%; 
-        padding: 10px; 
-        border: 1px solid #ccc; 
-        border-radius: 4px;
-        font-size: 15px; 
+        display: none; padding: 20px; background: #fff; border: 1px solid #111; border-top: none; 
         box-sizing: border-box; 
     }
-    
-    .custom-options-grid { display: flex; gap: 10px; align-items: center; }
-    .custom-color-picker { 
-        width: 40px; height: 40px; 
-        border: 1px solid #ddd; padding: 2px; 
-        background: #fff; cursor: pointer; border-radius: 4px; 
-    }
-    .custom-select-full { 
-        flex: 1; 
-        padding: 10px; 
-        border: 1px solid #ccc; 
-        border-radius: 4px; 
-        background: #fff; 
-        font-size: 14px; 
-    }
+    .custom-panel.visible { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* DRAGGABLE TEXT */
+    .custom-label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 6px; text-transform: uppercase; color: #555; }
+    .custom-input { width: 100%; padding: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 15px; box-sizing: border-box; }
+    
+    .custom-row { display: flex; gap: 10px; margin-bottom: 5px; }
+    .custom-color { width: 40px; height: 38px; padding: 0; border: 1px solid #ccc; background: none; cursor: pointer; }
+    .custom-select { flex: 1; padding: 8px; border: 1px solid #ccc; background: #fff; font-size: 14px; }
+
+    /* DRAG TEXT */
     .custom-overlay-container { position: relative !important; }
     .custom-draggable-text {
-        position: absolute;
-        cursor: move; cursor: grab;
+        position: absolute; cursor: move; cursor: grab;
         user-select: none; -webkit-user-select: none;
         white-space: nowrap; font-weight: bold;
         text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        padding: 10px;
-        border: 1px dashed rgba(255,255,255,0.4);
+        padding: 5px; border: 1px dashed rgba(255,255,255,0.4);
         transform: translate(-50%, -50%);
-        font-size: 26px; z-index: 9999;
+        font-size: 24px; z-index: 99999;
         pointer-events: auto;
     }
     .custom-draggable-text:active { cursor: grabbing; border: 1px solid #fff; background: rgba(0,0,0,0.1); }
@@ -95,110 +54,89 @@ styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
 const FONTS = [
-    { name: 'Moderna (Sans)', val: 'Helvetica, Arial, sans-serif' },
-    { name: 'Elegante (Serif)', val: 'Georgia, serif' },
-    { name: 'Cursiva (Script)', val: 'Brush Script MT, cursive' },
-    { name: 'Máquina (Mono)', val: 'Courier New, monospace' },
-    { name: 'Impacto (Bold)', val: 'Impact, sans-serif' }
+    { name: 'Moderna', val: 'Helvetica, Arial, sans-serif' },
+    { name: 'Elegante', val: 'Georgia, serif' },
+    { name: 'Cursiva', val: 'Brush Script MT, cursive' },
+    { name: 'Máquina', val: 'Courier New, monospace' },
+    { name: 'Impacto', val: 'Impact, sans-serif' }
 ];
 
 function init() {
+    // Buscamos formularios
     const forms = document.querySelectorAll('form[action*="/cart/add"], .js-product-form');
     forms.forEach(inject);
 }
 
 function inject(form) {
-    if (form.dataset.cv62) return;
-    form.dataset.cv62 = "true";
+    if (form.dataset.cv63) return;
+    form.dataset.cv63 = "true";
 
+    // ESTADO
     const state = { active: false, text: "", color: "#ffffff", font: FONTS[0].val, posX: 50, posY: 50 };
 
-    // ESTRUCTURA LIMPIA
+    // --- UI ---
     const wrapper = document.createElement('div');
     wrapper.className = 'custom-section-wrapper';
 
-    // 1. Botón
     const trigger = document.createElement('div');
     trigger.className = 'custom-trigger-btn';
-    trigger.innerHTML = '<span>✎ Personalizar (+ $0)</span> <span class="custom-trigger-icon">▼</span>';
+    trigger.innerHTML = '<span>✎ Personalizar Diseño (+ $0)</span> <span>+</span>';
 
-    // 2. Panel
     const panel = document.createElement('div');
     panel.className = 'custom-panel';
 
-    // -- Controles --
-    // Texto
-    panel.innerHTML += '<div class="custom-form-group"><span class="custom-label">1. Escribe tu texto:</span></div>';
+    // 1. Text
+    panel.innerHTML += '<span class="custom-label">Tu Texto:</span>';
     const input = document.createElement('input');
-    input.className = 'custom-input-full';
-    input.placeholder = 'Ej: TU NOMBRE';
+    input.className = 'custom-input';
+    input.placeholder = 'Escribe aquí...';
     input.addEventListener('input', e => { state.text = e.target.value; updateOverlay(form, state); });
-    panel.lastChild.appendChild(input);
+    panel.appendChild(input);
 
-    // Estilos
-    panel.innerHTML += '<div class="custom-form-group" style="margin-top:15px"><span class="custom-label">2. Elige estilo:</span></div>';
-    const grid = document.createElement('div'); grid.className = 'custom-options-grid';
+    // 2. Styles
+    panel.innerHTML += '<span class="custom-label">Estilo:</span>';
+    const row = document.createElement('div'); row.className = 'custom-row';
 
-    const colorP = document.createElement('input'); colorP.type = 'color'; colorP.className = 'custom-color-picker'; colorP.value = state.color;
+    const colorP = document.createElement('input'); colorP.type = 'color'; colorP.className = 'custom-color'; colorP.value = state.color;
     colorP.addEventListener('input', e => { state.color = e.target.value; updateOverlay(form, state); });
 
-    const fontS = document.createElement('select'); fontS.className = 'custom-select-full';
+    const fontS = document.createElement('select'); fontS.className = 'custom-select';
     FONTS.forEach(f => { const o = document.createElement('option'); o.value = f.val; o.innerText = f.name; fontS.appendChild(o); });
     fontS.addEventListener('change', e => { state.font = e.target.value; updateOverlay(form, state); });
 
-    grid.appendChild(colorP);
-    grid.appendChild(fontS);
-    panel.appendChild(grid);
+    row.appendChild(colorP);
+    row.appendChild(fontS);
+    panel.appendChild(row);
 
-    // Tip
-    panel.innerHTML += '<div style="margin-top:10px; font-size:11px; color:#888; text-align:center;">✋ Arrastra el texto sobre la imagen para moverlo</div>';
+    panel.innerHTML += '<div style="margin-top:10px; font-size:10px; color:#666; text-align:center;">Arrastra el texto para ubicarlo</div>';
 
     wrapper.appendChild(trigger);
     wrapper.appendChild(panel);
 
-    // Lógica Abrir
+    // Toggle
     trigger.onclick = () => {
         state.active = !state.active;
         panel.classList.toggle('visible');
         trigger.classList.toggle('active');
-        if (state.active && !state.text) updateOverlay(form, state, "TU TEXTO");
-        else updateOverlay(form, state);
+        trigger.innerHTML = state.active ? '<span>Personalizando...</span> <span>-</span>' : '<span>✎ Personalizar Diseño (+ $0)</span> <span>+</span>';
+        if (state.active && !state.text) updateOverlay(form, state, "TU TEXTO"); else updateOverlay(form, state);
     };
 
-    // --- UBICACIÓN ESTRATÉGICA ---
-    // Estrategia: Buscar el contenedor de Precios o Envío para insertarlo ANTES de los botones
-    // O buscar el primer elemento visible "product-variants"
-    const variants = form.querySelector('.js-product-variants, .product-variants');
-    const quantity = form.querySelector('.js-quantity, .quantity');
-    const submitBtn = form.querySelector('.js-addtocart, input[type="submit"]');
-
-    // Prioridad de inserción:
-    // 1. Después de variantes (si existen)
-    // 2. Antes de cantidad (si existe)
-    // 3. Antes de botón comprar (último recurso)
-
-    if (variants) {
-        // Insertar después de variantes
-        variants.parentNode.insertBefore(wrapper, variants.nextSibling);
-    } else if (quantity) {
-        // Insertar antes de cantidad (para que quede arriba de la fila de compra)
-        // PERO verificamos si quantity está dentro de un contenedor 'row'
-        const qtyParent = quantity.parentElement;
-        if (qtyParent.classList.contains('row') || getComputedStyle(qtyParent).display === 'flex') {
-            // Si está en flex, insertamos ANTES del contenedor flex padre
-            qtyParent.parentNode.insertBefore(wrapper, qtyParent);
-        } else {
-            wrapper.style.marginBottom = "20px";
-            quantity.parentNode.insertBefore(wrapper, quantity);
-        }
-    } else if (submitBtn) {
-        // Fallback
-        submitBtn.parentNode.insertBefore(wrapper, submitBtn);
+    // --- INSERCIÓN EXTERNA (FUERA DEL FORM) ---
+    // Estrategia: Insertar ANTES del formulario para salir del contexto flex/grid que rompe todo.
+    // Buscamos el padre del form
+    const parent = form.parentElement;
+    if (parent) {
+        parent.insertBefore(wrapper, form);
     } else {
-        form.prepend(wrapper);
+        // Fallback: al principio del form si no hay padre accesible
+        form.insertBefore(wrapper, form.firstChild);
     }
 
-    if (submitBtn) setupNativeSubmit(form, submitBtn, state);
+    // --- CONEXIÓN REMOTA CON EL BOTÓN DE COMPRA ---
+    // Aunque estemos fuera, seguimos secuestrando el submit
+    const btn = form.querySelector('.js-addtocart, input[type="submit"], button[type="submit"]');
+    if (btn) setupSafeSubmit(form, btn, state);
 }
 
 function updateOverlay(form, state, placeholder = "") {
@@ -233,47 +171,31 @@ function updateOverlay(form, state, placeholder = "") {
 }
 
 function makeDraggable(el, container, state) {
-    let isDragging = false;
-    let startX, startY;
+    let isDragging = false; let startX, startY;
 
     const onStart = (e) => {
         e.preventDefault(); e.stopPropagation();
         isDragging = true;
         const c = e.touches ? e.touches[0] : e;
-        const rect = container.getBoundingClientRect();
-
-        // Guardamos la posición inicial del puntero
-        startX = c.clientX;
-        startY = c.clientY;
+        startX = c.clientX; startY = c.clientY;
     };
 
     const onMove = (e) => {
-        if (!isDragging) return;
-        e.preventDefault(); // Stop scroll
+        if (!isDragging) return; e.preventDefault();
         const c = e.touches ? e.touches[0] : e;
-
-        const deltaX = c.clientX - startX;
-        const deltaY = c.clientY - startY;
-
+        const deltaX = c.clientX - startX; const deltaY = c.clientY - startY;
         const rect = container.getBoundingClientRect();
 
-        // Posiciòn actual en px
         const curX = (state.posX / 100) * rect.width;
         const curY = (state.posY / 100) * rect.height;
 
-        let newX = curX + deltaX;
-        let newY = curY + deltaY;
-
-        // Clamp 0-100%
-        let pctX = (newX / rect.width) * 100;
-        let pctY = (newY / rect.height) * 100;
+        let pctX = ((curX + deltaX) / rect.width) * 100;
+        let pctY = ((curY + deltaY) / rect.height) * 100;
 
         pctX = Math.max(0, Math.min(100, pctX));
         pctY = Math.max(0, Math.min(100, pctY));
 
-        el.style.left = pctX + '%';
-        el.style.top = pctY + '%';
-
+        el.style.left = pctX + '%'; el.style.top = pctY + '%';
         state.posX = pctX; state.posY = pctY;
         startX = c.clientX; startY = c.clientY;
     };
@@ -288,7 +210,7 @@ function makeDraggable(el, container, state) {
     document.addEventListener('touchend', onEnd);
 }
 
-function setupNativeSubmit(form, btn, state) {
+function setupSafeSubmit(form, btn, state) {
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
     newBtn.addEventListener('click', (e) => {
@@ -301,7 +223,6 @@ function setupNativeSubmit(form, btn, state) {
             let i1 = form.querySelector('input[name="properties[Personalizacion]"]');
             if (!i1) { i1 = document.createElement('input'); i1.type = 'hidden'; i1.name = 'properties[Personalizacion]'; form.appendChild(i1); }
             i1.value = val;
-
             let i2 = form.querySelector('input[name="comment"]');
             if (!i2) { i2 = document.createElement('input'); i2.type = 'hidden'; i2.name = 'comment'; form.appendChild(i2); }
             i2.value = val;
