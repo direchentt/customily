@@ -1,3 +1,4 @@
+// SalesBooster V8.0 — Fri Feb 20 01:32:41 -03 2026
 // SalesBooster V8.0 — Multi-Product | Discount Engine | Smart Logic
 // https://github.com/direchentt/customily
 
