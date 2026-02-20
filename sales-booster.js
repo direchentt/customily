@@ -1,4 +1,4 @@
-// SalesBooster V8.4 — Cupones nativos Tiendanube, sin backend
+// SalesBooster V9.0 — Cupones dinámicos via backend, descuento nativo en Tiendanube
 // https://github.com/direchentt/customily
 
 (function () {
@@ -6,8 +6,9 @@
 
     const CONFIG = {
         dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json',
+        // Backend local para crear cupones dinámicos (en producción, reemplazar con URL de Render/Railway)
+        backendUrl: 'http://localhost:3001',
         cartEndpoint: '/comprar/',
-        cartTriggerSelector: '.js-modal-open[href*="cart"], .js-modal-open.js-fullscreen-modal-open, [data-target="fullscreen-cart"]',
         injectAfterSelectors: ['.js-product-form', '#product_form', '.js-addtocart', '.product-buy-container'],
     };
 
@@ -208,23 +209,45 @@
             if (disclaimer) disclaimer.style.display = 'none';
             successEl.style.display = 'block';
 
-            const coupon = combo.coupon || null;
+            // Mostrar loading de cupón
+            successEl.style.display = 'block';
+            successEl.innerHTML = `⏳ Aplicando descuento...`;
 
-            if (coupon) {
-                // Copiar al portapapeles y redirigir
-                try { navigator.clipboard.writeText(coupon); } catch (e) { }
+            const discount = combo.discount || 0;
+            const staticCoupon = combo.coupon || null;
 
-                successEl.innerHTML = `✅ ¡Pack listo! Cupón <b>${coupon}</b> copiado.<br>Yendo al carrito...`;
+            if (discount > 0) {
+                // Intentar crear cupón dinámico via backend
+                let finalCoupon = staticCoupon;
+                try {
+                    const couponResp = await fetch(`${CONFIG.backendUrl}/api/create-coupon`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ discount_percent: discount, combo_id: combo.id })
+                    });
+                    const couponData = await couponResp.json();
+                    if (couponData.success && couponData.coupon) {
+                        finalCoupon = couponData.coupon;
+                        console.log('[SalesBooster] Cupón dinámico creado:', finalCoupon);
+                    }
+                } catch (e) {
+                    console.warn('[SalesBooster] Backend no disponible, usando cupón estático si existe:', e.message);
+                }
 
-                setTimeout(() => {
-                    window.location.href = CONFIG.cartEndpoint;
-                }, 1500);
+                if (finalCoupon) {
+                    successEl.innerHTML = `✅ ¡Pack listo! Aplicando ${discount}% OFF...`;
+                    setTimeout(() => {
+                        // Redirigir al checkout con el cupón pre-cargado en la URL
+                        window.location.href = `${CONFIG.cartEndpoint}?coupon=${encodeURIComponent(finalCoupon)}`;
+                    }, 800);
+                } else {
+                    // Sin cupón: ir al carrito simple
+                    successEl.innerHTML = `✅ ¡Pack agregado al carrito!`;
+                    setTimeout(() => { window.location.href = CONFIG.cartEndpoint; }, 800);
+                }
             } else {
                 successEl.innerHTML = `✅ ¡Pack agregado al carrito!<br>Yendo al carrito...`;
-                setTimeout(() => {
-                    // Redirigimos siempre directo al carrito para no accionar modales incorrectos (ej. el buscador)
-                    window.location.href = CONFIG.cartEndpoint;
-                }, 1000);
+                setTimeout(() => { window.location.href = CONFIG.cartEndpoint; }, 800);
             }
 
         } catch (e) {
