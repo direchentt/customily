@@ -186,21 +186,28 @@
             const currentProductId = document.querySelector('input[name="add_to_cart"]')?.value;
 
             // Agregar TODOS los productos del combo al carrito en secuencia
+            // Tiendanube requiere el header X-Requested-With para responder con JSON en /comprar/
             for (const p of products) {
                 const params = new URLSearchParams({ add_to_cart: p.id, quantity: 1 });
                 // Si el producto a agregar es el que el usuario está viendo, le adjuntamos su variante elegida
                 if (String(p.id) === String(currentProductId) && currentVariantId) {
                     params.append('variant_id', currentVariantId);
                 } else if (p.variant_id) {
-                    // Si es el producto secundario y tiene una variante asignada, la usamos
                     params.append('variant_id', p.variant_id);
                 }
 
-                await fetch(CONFIG.cartEndpoint, {
+                const resp = await fetch(CONFIG.cartEndpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     body: params.toString()
                 });
+
+                let respData = null;
+                try { respData = await resp.json(); } catch (e) { }
+                console.log(`[SalesBooster] Add product ${p.id}:`, respData);
             }
 
             // Mostrar éxito
