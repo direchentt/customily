@@ -13,6 +13,67 @@ app.use(express.json());
 
 const DB_PATH = path.join(__dirname, '../combos.json');
 
+// ─── TIENDANUBE API CONFIG ───
+const TN_STORE_ID = '6325197';
+const TN_TOKEN = '347f42c35e2dbe8fab033b243a3b43f52fc9d08b';
+const TN_API = `https://api.tiendanube.com/v1/${TN_STORE_ID}`;
+const TN_HEADERS = {
+    'Authentication': `bearer ${TN_TOKEN}`,
+    'Content-Type': 'application/json',
+    'User-Agent': 'SalesBooster/8.0 (direchentt@gmail.com)'
+};
+
+// ─── DRAFT ORDER ENDPOINT ───
+// Crea un carrito con descuento nativo via Tiendanube API y devuelve checkout_url
+app.post('/api/draft-order', async (req, res) => {
+    try {
+        const { products, discount_percent } = req.body;
+        // products: [{ variant_id, quantity, price }]
+        // discount_percent: número (ej: 20)
+
+        if (!products || products.length === 0) {
+            return res.status(400).json({ error: 'No products provided' });
+        }
+
+        // Calcular descuento total
+        const subtotal = products.reduce((sum, p) => sum + (parseFloat(p.price) * p.quantity), 0);
+        const discountAmount = (subtotal * discount_percent / 100).toFixed(2);
+
+        const body = {
+            products: products.map(p => ({
+                variant_id: p.variant_id,
+                quantity: p.quantity
+            })),
+            promotional_discount: {
+                applies_to: 'total',
+                type: 'percentage',
+                value: discount_percent,
+                discount_value: discountAmount
+            }
+        };
+
+        console.log(`📦 Creating Draft Order: ${products.length} products, ${discount_percent}% OFF ($${discountAmount} off)`);
+
+        const response = await axios.post(`${TN_API}/draft_orders`, body, { headers: TN_HEADERS });
+        const draftOrder = response.data;
+
+        console.log(`✅ Draft Order created: ${draftOrder.id} | Checkout: ${draftOrder.checkout_url}`);
+
+        res.json({
+            success: true,
+            checkout_url: draftOrder.checkout_url,
+            draft_order_id: draftOrder.id,
+            total: draftOrder.total,
+            discount: draftOrder.discount
+        });
+
+    } catch (error) {
+        const errData = error.response?.data || error.message;
+        console.error('❌ Draft Order Error:', JSON.stringify(errData));
+        res.status(500).json({ error: 'Failed to create draft order', details: errData });
+    }
+});
+
 // --- API ROUTES ---
 
 // 1. OBTENER PRODUCTOS (SCRAPER MEJORADO)

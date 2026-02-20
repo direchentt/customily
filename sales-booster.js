@@ -6,6 +6,7 @@
 
     const CONFIG = {
         dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json',
+        backendUrl: 'http://localhost:3001',  // servidor local con acceso a la API de Tiendanube
         cartEndpoint: '/comprar/',
         cartTriggerSelector: '.js-modal-open[href*="cart"], .js-modal-open.js-fullscreen-modal-open, [data-target="fullscreen-cart"]',
         injectAfterSelectors: ['.js-product-form', '#product_form', '.js-addtocart', '.product-buy-container'],
@@ -163,7 +164,7 @@
         injectStyles();
     }
 
-    // ─── ADD TO CART ───
+    // ─── ADD TO CART (via Draft Order API — descuento nativo) ───
     async function addComboToCart(main, partners, widget, combo) {
         const btn = widget.querySelector('#sb-cta-btn');
         const textEl = widget.querySelector('.sb-cta-text');
@@ -176,63 +177,74 @@
         loadEl.style.display = 'inline';
 
         try {
-            // Leer variant_id actualizado
+            // Leer variant_id actualizado del producto principal
             const variantInput = document.querySelector('input[name="variant_id"], select[name="variant_id"]');
             const variantId = variantInput ? variantInput.value : main.variantId;
 
-            // POST producto principal — redirect:'manual' evita el error por 302
-            const payload1 = new URLSearchParams({ add_to_cart: main.id, quantity: 1 });
-            if (variantId) payload1.append('variant_id', variantId);
-            await fetch(CONFIG.cartEndpoint, {
+            // Construir lista de productos para el Draft Order
+            const allProducts = [
+                { variant_id: variantId || main.id, quantity: 1, price: main.price },
+                ...partners.map(p => ({ variant_id: p.id, quantity: 1, price: parsePrice(p.price) }))
+            ];
+
+            // Llamar al backend para crear Draft Order con descuento nativo
+            const response = await fetch(`${CONFIG.backendUrl}/api/draft-order`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: payload1.toString(),
-                redirect: 'manual'
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    products: allProducts,
+                    discount_percent: combo.discount || 0
+                })
             });
 
-            // POST cada producto del pack
-            for (const p of partners) {
-                const payload = new URLSearchParams({ add_to_cart: p.id, quantity: 1 });
-                await fetch(CONFIG.cartEndpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: payload.toString(),
-                    redirect: 'manual'
-                });
+            const data = await response.json();
+
+            if (data.success && data.checkout_url) {
+                // Éxito: mostrar feedback y redirigir al checkout con descuento aplicado
+                loadEl.style.display = 'none';
+                btn.style.display = 'none';
+                disclaimer.style.display = 'none';
+                successEl.style.display = 'block';
+                successEl.innerHTML = `✅ ¡Pack listo! Redirigiendo con ${combo.discount}% OFF...`;
+
+                setTimeout(() => {
+                    window.location.href = data.checkout_url;
+                }, 800);
+            } else {
+                throw new Error(data.error || 'Response sin checkout_url');
             }
 
-            // Éxito visual
-            loadEl.style.display = 'none';
-            btn.style.display = 'none';
-            disclaimer.style.display = 'none';
-            successEl.style.display = 'block';
-
-            // Redirigir — si tiene cupón (del campo discount del combo), aplicarlo
-            // El admin puede guardar un código de cupón por combo. Si no, ir al carrito.
-            const coupon = combo.coupon || null;
-            setTimeout(() => {
-                if (coupon) {
-                    // Aplicar cupón automáticamente en el checkout
-                    window.location.href = `/checkout/v3/start?coupon=${encodeURIComponent(coupon)}`;
-                } else {
-                    // Sin cupón: intentar abrir carrito lateral, sino ir a /cart
-                    const cartTrigger = document.querySelector(CONFIG.cartTriggerSelector);
-                    if (cartTrigger) {
-                        cartTrigger.click();
-                    } else {
-                        window.location.href = '/cart';
-                    }
-                }
-            }, 600);
-
         } catch (e) {
-            // Las respuestas opaque (redirect manual) no son errores reales
-            // Solo mostramos error si es una excepción de red real
-            console.warn('[SalesBooster] Cart warning (puede ser normal):', e.message);
-            loadEl.style.display = 'none';
-            textEl.style.display = 'inline';
-            textEl.textContent = '⚠️ Toca de nuevo si no se agregó.';
-            btn.disabled = false;
+            console.warn('[SalesBooster] Draft Order falló, usando carrito normal:', e.message);
+
+            // Fallback: agregar al carrito normal sin descuento
+            try {
+                const variantInput = document.querySelector('input[name="variant_id"], select[name="variant_id"]');
+                const variantId = variantInput ? variantInput.value : main.variantId;
+
+                const p1 = new URLSearchParams({ add_to_cart: main.id, quantity: 1 });
+                if (variantId) p1.append('variant_id', variantId);
+                await fetch(CONFIG.cartEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p1.toString(), redirect: 'manual' });
+
+                for (const p of partners) {
+                    const p2 = new URLSearchParams({ add_to_cart: p.id, quantity: 1 });
+                    await fetch(CONFIG.cartEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p2.toString(), redirect: 'manual' });
+                }
+
+                loadEl.style.display = 'none';
+                btn.style.display = 'none';
+                successEl.style.display = 'block';
+                successEl.innerHTML = `✅ ¡Pack agregado! <a href="/cart">Ver carrito →</a>`;
+
+                const cartTrigger = document.querySelector(CONFIG.cartTriggerSelector);
+                if (cartTrigger) setTimeout(() => cartTrigger.click(), 400);
+
+            } catch (e2) {
+                loadEl.style.display = 'none';
+                textEl.style.display = 'inline';
+                textEl.textContent = '⚠️ Error. Intenta de nuevo.';
+                btn.disabled = false;
+            }
         }
     }
 
