@@ -1,16 +1,14 @@
-console.log("🚀 SalesBooster V5.0 AJAX + COUPON: STARTING...");
+console.log("🚀 SalesBooster V6.0 PURE COMBO: STARTING...");
 
 const SalesBooster = {
     settings: {
         dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json',
-        discountLabel: 'PACK 10% OFF',
-        couponCode: 'PACK10', // ASEGÚRATE DE CREAR ESTE CUPÓN EN TIENDANUBE
+        discountLabel: 'AHORRA EN PACK',
         triggerSelectors: ['.js-product-form', '#product_form', '.js-addtocart', '.product-buy-container'],
-        cacheKey: 'sb_combos_db_v5'
+        cacheKey: 'sb_combos_db_v6'
     },
 
     init: async function () {
-        // ... (Init igual a V4) ...
         const mainProduct = this.getMainProductData();
         if (!mainProduct) return;
         const db = await this.fetchCombosDB();
@@ -21,7 +19,6 @@ const SalesBooster = {
     },
 
     getMainProductData: function () {
-        // ... (Lógica igual a V4) ...
         let idInput = document.querySelector('input[name="add_to_cart"]');
         let id = idInput ? idInput.value : null;
 
@@ -56,16 +53,19 @@ const SalesBooster = {
     },
 
     renderComboWidget: function (main, partner) {
-        // ... (HTML del Widget igual a V4) ...
+        console.log("🎨 Rendering Pure Widget...", partner);
+
         const mainPrice = main.price;
         const partnerPrice = typeof partner.price === 'string' ? this.parsePrice(partner.price) : partner.price;
         const total = mainPrice + partnerPrice;
-        const discounted = Math.floor(total * 0.9);
+
+        // No prometemos un precio exacto, prometemos "PACK"
+        // El precio tachado es la suma real.
 
         const widget = document.createElement('div');
         widget.className = 'sb-combo-widget';
         widget.innerHTML = `
-            <div class="sb-header">🔥 COMPRADOS JUNTOS FRECUENTEMENTE</div>
+            <div class="sb-header">🔥 MEJOR JUNTOS</div>
             <div class="sb-body">
                 <div class="sb-images">
                     <img src="${main.img}" class="sb-thumb">
@@ -73,19 +73,17 @@ const SalesBooster = {
                     <img src="${partner.image || partner.img}" class="sb-thumb">
                 </div>
                 <div class="sb-details">
-                    <div class="sb-partner-title">Llevate también: <strong>${partner.name}</strong></div>
+                    <div class="sb-partner-title">Agrega también: <strong>${partner.name}</strong></div>
                     <div class="sb-prices">
                         <span class="sb-old">$${total.toLocaleString('es-AR')}</span>
-                        <span class="sb-new">$${discounted.toLocaleString('es-AR')}</span>
                         <span class="sb-tag">${this.settings.discountLabel}</span>
                     </div>
                 </div>
             </div>
             <button class="sb-btn">AGREGAR PACK AL CARRITO 🛒</button>
-            <div class="sb-msg" style="display:none;font-size:11px;color:#666;margin-top:5px;">Agregando productos...</div>
+            <div class="sb-msg" style="display:none;font-size:11px;color:#666;margin-top:5px;">Procesando...</div>
         `;
 
-        // INYECCIÓN ROBUSTA
         let injected = false;
         for (const selector of this.settings.triggerSelectors) {
             const target = document.querySelector(selector);
@@ -100,7 +98,6 @@ const SalesBooster = {
             fallback.appendChild(widget);
         }
 
-        // EVENT LISTENER
         widget.querySelector('.sb-btn').onclick = (e) => {
             e.preventDefault();
             this.addComboToCart(main.id, partner.id, widget);
@@ -115,43 +112,36 @@ const SalesBooster = {
 
         btn.disabled = true;
         btn.style.opacity = 0.5;
-        msg.innerText = "Agregando pack...";
+        msg.innerText = "Sumando productos...";
         msg.style.display = 'block';
 
         try {
-            // 1. Agregar Producto Main
-            await fetch('/comprar/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ add_to_cart: id1, quantity: 1 })
-            });
+            const formData1 = new FormData(); formData1.append('add_to_cart', id1); formData1.append('quantity', 1);
+            const formData2 = new FormData(); formData2.append('add_to_cart', id2); formData2.append('quantity', 1);
 
-            // 2. Agregar Partner
-            await fetch('/comprar/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ add_to_cart: id2, quantity: 1 })
-            });
+            // Usamos fetch secuencial para asegurar orden
+            await fetch('/comprar/', { method: 'POST', body: formData1 });
+            await fetch('/comprar/', { method: 'POST', body: formData2 });
 
-            msg.innerText = "¡Listo! Redirigiendo...";
+            msg.innerText = "¡Hecho! Abriendo carrito...";
 
-            // 3. Redirigir INTELIGENTE (Detecta idioma/país)
-            // Intentar usar LS.cart primero si existe
+            // Intentar abrir carrito lateral (AJAX)
             if (window.LS && window.LS.cart && window.LS.cart.show) {
-                window.LS.cart.show(); // Abrir carrito lateral si el tema lo soporta
-                btn.disabled = false;
-                btn.style.opacity = 1;
-                msg.style.display = 'none';
+                // Pequeño delay para asegurar que TIendanube actualizó el estado
+                setTimeout(() => {
+                    window.LS.cart.show();
+                    btn.disabled = false;
+                    btn.style.opacity = 1;
+                    msg.style.display = 'none';
+                }, 500);
             } else {
-                // Redirigir a checkout aplicando cupón si es posible
-                window.location.href = `/checkout/v3/start?coupon=${this.settings.couponCode}`;
+                // Fallback clásico
+                window.location.href = '/carrito';
             }
 
         } catch (e) {
             console.error("Cart Error:", e);
-            msg.innerText = "Error agregando. Intenta manualmente.";
-            // Fallback a redirección simple
-            window.location.href = '/checkout';
+            window.location.href = '/carrito';
         }
     },
 
@@ -163,20 +153,19 @@ const SalesBooster = {
     injectStyles: function () {
         if (document.getElementById('sb-styles')) return;
         const css = `
-            .sb-combo-widget { margin: 25px 0; border: 2px dashed #27ae60; padding: 15px; border-radius: 8px; background: #f9fffb; font-family: sans-serif; clear: both; width: 100%; box-sizing: border-box; }
-            .sb-header { font-size: 13px; font-weight: 800; color: #27ae60; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+            .sb-combo-widget { margin: 25px 0; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fff; font-family: sans-serif; clear: both; width: 100%; box-sizing: border-box; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+            .sb-header { font-size: 13px; font-weight: 800; color: #333; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
             .sb-body { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
             .sb-images { display: flex; align-items: center; gap: 8px; }
-            .sb-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; background: #fff; }
+            .sb-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; background: #fff; }
             .sb-plus { color: #999; font-weight: bold; font-size: 18px; }
             .sb-details { flex: 1; }
             .sb-partner-title { font-size: 13px; color: #555; margin-bottom: 4px; line-height: 1.3; }
             .sb-prices { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-            .sb-old { text-decoration: line-through; color: #aaa; font-size: 12px; }
-            .sb-new { font-weight: 700; color: #27ae60; font-size: 16px; }
-            .sb-tag { background: #27ae60; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-            .sb-btn { width: 100%; border: none; background: #27ae60; color: #fff; padding: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: opacity 0.2s; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2); }
-            .sb-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+            .sb-old { color: #333; font-weight: bold; font-size: 14px; }
+            .sb-tag { background: #000; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+            .sb-btn { width: 100%; border: none; background: #000; color: #fff; padding: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: opacity 0.2s; }
+            .sb-btn:hover { opacity: 0.8; }
             
             @media (max-width: 480px) {
                 .sb-body { flex-direction: column; align-items: flex-start; }
