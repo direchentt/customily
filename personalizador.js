@@ -1,127 +1,234 @@
-console.log("🚀 Personalizador v0.3: Fondo Dinámico Activado");
+console.log("🚀 Personalizador PRO v1.0: Iniciando Suite de Diseño...");
 
-const SELECTOR_IMAGEN = '.js-product-slide-img, .product-image-container img';
+const SELECTOR_IMAGEN = '.js-product-slide-img, .product-image-container img, .swiper-slide-active img';
 const SELECTOR_FORMULARIO = '.js-addtocart, .js-product-form';
 
-function iniciar() {
+// Cargar Fabric.js dinámicamente (Librería profesional de diseño)
+function cargarDependencias(callback) {
+    if (window.fabric) {
+        callback();
+        return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js';
+    script.onload = () => {
+        console.log("✅ Fabric.js cargado exitosamente");
+        callback();
+    };
+    document.head.appendChild(script);
+}
+
+function iniciarSuiteDiseño() {
     if (!window.location.pathname.includes('/productos/')) return;
 
-    const imagen = document.querySelector(SELECTOR_IMAGEN);
+    const imagenOriginal = document.querySelector(SELECTOR_IMAGEN);
     const formulario = document.querySelector(SELECTOR_FORMULARIO);
 
-    // Evitar duplicados
-    if (imagen && formulario && !document.getElementById('customily-panel')) {
-        console.log("✨ Creando interfaz de personalización de fondo...");
+    if (imagenOriginal && formulario && !document.getElementById('canvas-container')) {
 
-        // 1. Preparar el Contenedor de la Imagen
-        const contenedorImagen = imagen.parentElement;
-        contenedorImagen.style.position = "relative";
+        // 1. Preparar el entorno
+        const contenedorPadre = imagenOriginal.parentElement;
+        contenedorPadre.style.position = "relative";
 
-        // 2. Crear una Capa de Color (Overlay) ENCIMA de la imagen original
-        // Usamos mix-blend-mode para que parezca que la tinta del producto cambia
-        const capaColor = document.createElement('div');
-        capaColor.id = 'customily-color-overlay';
-        capaColor.style.position = "absolute";
-        capaColor.style.top = "0";
-        capaColor.style.left = "0";
-        capaColor.style.width = "100%";
-        capaColor.style.height = "100%";
-        capaColor.style.backgroundColor = "transparent"; // Empieza transparente
-        capaColor.style.mixBlendMode = "multiply"; // Truco: "multiply" oscurece, "overlay" tiñe
-        capaColor.style.pointerEvents = "none";
-        capaColor.style.zIndex = "50";
-        capaColor.style.transition = "background-color 0.3s ease"; // Suavidad
+        // Crear wrapper para el canvas
+        const canvasWrapper = document.createElement('div');
+        canvasWrapper.id = 'canvas-container';
+        canvasWrapper.style.position = "absolute";
+        canvasWrapper.style.top = "0";
+        canvasWrapper.style.left = "0";
+        canvasWrapper.style.zIndex = "10";
+        // Importante: modo mezcla para que parezca impreso en la tela
+        canvasWrapper.style.mixBlendMode = "multiply";
 
-        contenedorImagen.appendChild(capaColor);
+        // Crear elemento Canvas
+        const canvasElement = document.createElement('canvas');
+        canvasElement.id = 't-shirt-canvas';
+        canvasWrapper.appendChild(canvasElement);
 
-        // 3. Crear el Panel de Control (Debajo del precio/título)
-        const panel = document.createElement('div');
-        panel.id = 'customily-panel';
-        panel.style.marginBottom = "20px";
-        panel.style.padding = "15px";
-        panel.style.backgroundColor = "#fff";
-        panel.style.borderRadius = "8px";
-        panel.style.border = "1px solid #ddd";
-        panel.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
+        // Insertar el canvas SOBRE la imagen original
+        // (No reemplazamos la imagen, la usamos de guía visual abajo)
+        imagenOriginal.style.opacity = "0.8"; // Bajarle un poco el brillo para destacar el diseño
+        contenedorPadre.appendChild(canvasWrapper);
 
-        const titulo = document.createElement('h4');
-        titulo.innerText = "🎨 Elige el Color del Producto";
-        titulo.style.margin = "0 0 10px 0";
-        titulo.style.fontSize = "14px";
-        titulo.style.textTransform = "uppercase";
-        titulo.style.letterSpacing = "1px";
+        // Inicializar Fabric.js
+        const canvas = new fabric.Canvas('t-shirt-canvas');
 
-        panel.appendChild(titulo);
+        // Ajustar tamaño del canvas al de la imagen
+        const rect = imagenOriginal.getBoundingClientRect();
+        canvas.setWidth(rect.width);
+        canvas.setHeight(rect.height);
 
-        // 4. Crear Botones de Colores
-        const colores = [
-            { nombre: "Original", hex: "transparent" },
-            { nombre: "Rojo Pasión", hex: "#ff0000" },
-            { nombre: "Azul Profundo", hex: "#0000ff" },
-            { nombre: "Verde Esmeralda", hex: "#00ff00" },
-            { nombre: "Amarillo Solar", hex: "#ffff00" },
-            { nombre: "Negro Elegante", hex: "#333333" }
-        ];
-
-        const contenedorBotones = document.createElement('div');
-        contenedorBotones.style.display = "flex";
-        contenedorBotones.style.gap = "10px";
-
-        colores.forEach(color => {
-            const btn = document.createElement('button');
-            btn.title = color.nombre;
-            btn.style.width = "30px";
-            btn.style.height = "30px";
-            btn.style.borderRadius = "50%"; // Circulares
-            btn.style.border = "2px solid #ddd";
-            btn.style.cursor = "pointer";
-            btn.style.backgroundColor = color.hex === "transparent" ? "white" : color.hex;
-
-            // Si es transparente, poner una X o icono para indicar "sin color"
-            if (color.hex === "transparent") {
-                btn.style.backgroundImage = "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)";
-                btn.style.backgroundSize = "10px 10px";
-            } else {
-                // Hacer que el color sea semitransparente para simular tinte real
-                // (En la visualización en la imagen, no en el botón)
-            }
-
-            btn.addEventListener('click', (e) => {
-                e.preventDefault(); // Evitar recarga
-                console.log("Cambiando color a:", color.nombre);
-
-                // Aplicar color a la capa superpuesta
-                // Usamos rgba para que se vea la textura de abajo
-                if (color.hex === "transparent") {
-                    capaColor.style.backgroundColor = "transparent";
-                } else {
-                    // Convertir hex a rgba con opacidad 0.5 para efecto tinte
-                    capaColor.style.backgroundColor = color.hex;
-                    capaColor.style.opacity = "0.5"; // Ajustable
-                }
-
-                // Efecto visual en el botón seleccionado
-                Array.from(contenedorBotones.children).forEach(b => b.style.transform = "scale(1)");
-                btn.style.transform = "scale(1.2)";
-                btn.style.borderColor = "#000";
-            });
-
-            contenedorBotones.appendChild(btn);
+        // Responsive: Si la ventana cambia, ajustar (básico)
+        window.addEventListener('resize', () => {
+            const newRect = imagenOriginal.getBoundingClientRect();
+            canvas.setWidth(newRect.width);
+            canvas.setHeight(newRect.height);
+            canvas.renderAll();
         });
 
-        panel.appendChild(contenedorBotones);
+        // ---------------------------------------------------------
+        // 2. Construir la Caja de Herramientas (Toolbox)
+        // ---------------------------------------------------------
+        crearPanelHerramientas(formulario, canvas);
 
-        // Insertar antes del botón de comprar
-        if (formulario && formulario.parentNode) {
-            formulario.parentNode.insertBefore(panel, formulario);
-        }
+        console.log("🎨 Suite de diseño activa");
     }
 }
 
-// Ejecutar con persistencia
-let intentos = 0;
-const intervalo = setInterval(() => {
-    iniciar();
-    intentos++;
-    if (intentos > 20) clearInterval(intervalo);
-}, 500);
+function crearPanelHerramientas(formulario, canvas) {
+    const panel = document.createElement('div');
+    panel.style.background = "#fff";
+    panel.style.border = "1px solid #e1e1e1";
+    panel.style.borderRadius = "8px";
+    panel.style.padding = "20px";
+    panel.style.marginBottom = "20px";
+    panel.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+
+    const titulo = document.createElement('h3');
+    titulo.innerText = "🛠 ESTUDIO DE PERSONALIZACIÓN";
+    titulo.style.fontSize = "16px";
+    titulo.style.borderBottom = "2px solid #000";
+    titulo.style.paddingBottom = "10px";
+    titulo.style.marginBottom = "15px";
+    panel.appendChild(titulo);
+
+    // --- SECCIÓN: TEXTO ---
+    const btnTexto = crearBoton("Agregar Texto (Aa)", "📝");
+    btnTexto.onclick = (e) => {
+        e.preventDefault();
+        const texto = new fabric.IText('TU TEXTO', {
+            left: canvas.width / 2 - 50,
+            top: canvas.height / 3,
+            fontFamily: 'arial',
+            fill: '#000000',
+            fontSize: 40
+        });
+        canvas.add(texto);
+        canvas.setActiveObject(texto);
+    };
+
+    // --- SECCIÓN: IMAGEN ---
+    const inputImagen = document.createElement('input');
+    inputImagen.type = 'file';
+    inputImagen.accept = 'image/*';
+    inputImagen.style.display = 'none';
+    inputImagen.onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (f) => {
+            fabric.Image.fromURL(f.target.result, (img) => {
+                img.scaleToWidth(200);
+                img.set({
+                    left: canvas.width / 2 - 100,
+                    top: canvas.height / 2 - 100
+                });
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            });
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    };
+
+    const btnImagen = crearBoton("Subir Logo/Foto", "📸");
+    btnImagen.onclick = (e) => {
+        e.preventDefault();
+        inputImagen.click();
+    };
+
+    // --- SECCIÓN: COLORES ---
+    const colorPicker = document.createElement('input');
+    colorPicker.type = "color";
+    colorPicker.value = "#000000";
+    colorPicker.style.marginLeft = "10px";
+    colorPicker.style.cursor = "pointer";
+    colorPicker.onchange = (e) => {
+        const obj = canvas.getActiveObject();
+        if (obj) {
+            obj.set('fill', e.target.value);
+            canvas.renderAll();
+        }
+    };
+
+    // --- SECCIÓN: BORRAR ---
+    const btnBorrar = crearBoton("Borrar Seleccionado", "🗑️");
+    btnBorrar.style.background = "#ffebee";
+    btnBorrar.style.color = "#c62828";
+    btnBorrar.style.border = "1px solid #ffcdd2";
+    btnBorrar.onclick = (e) => {
+        e.preventDefault();
+        const obj = canvas.getActiveObject();
+        if (obj) canvas.remove(obj);
+    };
+
+    // Estructura del panel
+    const filaBotones = document.createElement('div');
+    filaBotones.style.display = "flex";
+    filaBotones.style.gap = "10px";
+    filaBotones.style.flexWrap = "wrap";
+
+    filaBotones.appendChild(btnTexto);
+    filaBotones.appendChild(btnImagen);
+    filaBotones.appendChild(colorPicker);
+
+    panel.appendChild(filaBotones);
+    panel.appendChild(document.createElement('br'));
+    panel.appendChild(btnBorrar);
+    panel.appendChild(inputImagen); // Input oculto
+
+    // Interceptar el envío del formulario para guardar datos
+    interceptarCompra(formulario, canvas);
+
+    // Insertar en la página
+    formulario.parentNode.insertBefore(panel, formulario);
+}
+
+function crearBoton(texto, icono) {
+    const btn = document.createElement('button');
+    btn.innerHTML = `${icono} ${texto}`;
+    btn.style.padding = "10px 15px";
+    btn.style.border = "1px solid #ccc";
+    btn.style.background = "#f8f9fa";
+    btn.style.borderRadius = "5px";
+    btn.style.cursor = "pointer";
+    btn.style.fontWeight = "bold";
+    btn.style.fontSize = "13px";
+    btn.style.transition = "all 0.2s";
+
+    btn.onmouseover = () => btn.style.background = "#e2e6ea";
+    btn.onmouseout = () => btn.style.background = "#f8f9fa";
+
+    return btn;
+}
+
+function interceptarCompra(formulario, canvas) {
+    // Buscar el botón de submit real
+    const btnSubmit = formulario.querySelector('input[type="submit"], button[type="submit"]');
+
+    if (btnSubmit) {
+        btnSubmit.addEventListener('click', (e) => {
+            // Nota: En Tiendanube puro no podemos subir la imagen al servidor fácilmente sin backend.
+            // Lo que haremos es guardar un resumen de texto en los atributos del carrito si es posible,
+            // o al menos dejar preparado el hook.
+
+            // Generar imagen base64 (para uso futuro o guardar en localstorage)
+            const diseñoFinal = canvas.toDataURL({ format: 'png' });
+            console.log("🎁 Diseño generado (listo para enviar):", diseñoFinal.substring(0, 50) + "...");
+
+            // Aquí podríamos intentar inyectar un input hidden si el theme lo soporta
+            // const inputHidden = document.createElement('input');
+            // inputHidden.type = 'hidden';
+            // inputHidden.name = 'properties[Diseño]';
+            // inputHidden.value = 'Diseño personalizado generado por el usuario';
+            // formulario.appendChild(inputHidden);
+        });
+    }
+}
+
+// Iniciar proceso
+cargarDependencias(() => {
+    let intentos = 0;
+    const intervalo = setInterval(() => {
+        iniciarSuiteDiseño();
+        intentos++;
+        if (intentos > 20) clearInterval(intervalo);
+    }, 500);
+});
