@@ -1,44 +1,27 @@
-console.log("🚀 SalesBooster V4.0 MULTI-INJECTOR: STARTING...");
+console.log("🚀 SalesBooster V5.0 AJAX + COUPON: STARTING...");
 
 const SalesBooster = {
     settings: {
         dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json',
         discountLabel: 'PACK 10% OFF',
-        // Aumentamos los selectores para asegurar inyección
-        triggerSelectors: [
-            '.js-product-form',  // Prioridad 1: Después del form completo
-            '#product_form',     // Prioridad 2: ID del form
-            '.js-addtocart',    // Prioridad 3: Botón
-            '.product-buy-container',
-            '.js-product-buy-container'
-        ],
-        cacheKey: 'sb_combos_db_v4'
+        couponCode: 'PACK10', // ASEGÚRATE DE CREAR ESTE CUPÓN EN TIENDANUBE
+        triggerSelectors: ['.js-product-form', '#product_form', '.js-addtocart', '.product-buy-container'],
+        cacheKey: 'sb_combos_db_v5'
     },
 
     init: async function () {
-        // ... (Mismo código de inicialización V3) ...
-        console.log("🕵️ SalesBooster V4: Searching context...");
-
+        // ... (Init igual a V4) ...
         const mainProduct = this.getMainProductData();
         if (!mainProduct) return;
-
         const db = await this.fetchCombosDB();
         let partnerData = db[mainProduct.id];
-
-        if (partnerData) {
-            if (typeof partnerData === 'string') {
-                console.warn("⚠️ Legacy Combo Format detected.");
-            } else {
-                console.log("✨ SalesBooster: INSTANT MATCH!", partnerData);
-                this.renderComboWidget(mainProduct, partnerData);
-            }
-        } else {
-            console.log("ℹ️ No combo config found for", mainProduct.id);
+        if (partnerData && typeof partnerData !== 'string') {
+            this.renderComboWidget(mainProduct, partnerData);
         }
     },
 
     getMainProductData: function () {
-        // ... (Misma lógica robusta de V3) ...
+        // ... (Lógica igual a V4) ...
         let idInput = document.querySelector('input[name="add_to_cart"]');
         let id = idInput ? idInput.value : null;
 
@@ -60,7 +43,8 @@ const SalesBooster = {
         return {
             id: String(id),
             img: imgEl ? imgEl.src : '',
-            price: priceEl ? this.parsePrice(priceEl.innerText) : 0
+            price: priceEl ? this.parsePrice(priceEl.innerText) : 0,
+            name: document.querySelector('.js-product-name, h1')?.innerText || 'Producto'
         };
     },
 
@@ -72,11 +56,9 @@ const SalesBooster = {
     },
 
     renderComboWidget: function (main, partner) {
-        console.log("🎨 Rendering Widget V4...");
-
+        // ... (HTML del Widget igual a V4) ...
         const mainPrice = main.price;
         const partnerPrice = typeof partner.price === 'string' ? this.parsePrice(partner.price) : partner.price;
-
         const total = mainPrice + partnerPrice;
         const discounted = Math.floor(total * 0.9);
 
@@ -100,46 +82,76 @@ const SalesBooster = {
                 </div>
             </div>
             <button class="sb-btn">AGREGAR PACK AL CARRITO 🛒</button>
+            <div class="sb-msg" style="display:none;font-size:11px;color:#666;margin-top:5px;">Agregando productos...</div>
         `;
 
-        // INYECCIÓN MULTI-SELECTOR
+        // INYECCIÓN ROBUSTA
         let injected = false;
         for (const selector of this.settings.triggerSelectors) {
             const target = document.querySelector(selector);
             if (target) {
-                console.log(`✅ Injecting after: ${selector}`);
                 target.parentElement.insertBefore(widget, target.nextSibling);
                 injected = true;
-                break; // Stop after first successful injection
+                break;
             }
         }
-
         if (!injected) {
-            console.error("❌ CRITICAL: No injection point found in PDP.");
-            // Fallback: Append to body or product detail container
             const fallback = document.querySelector('.js-product-detail') || document.body;
             fallback.appendChild(widget);
-            console.log("⚠️ Used fallback injection.");
         }
 
+        // EVENT LISTENER
         widget.querySelector('.sb-btn').onclick = (e) => {
             e.preventDefault();
-            this.addComboToCart(main.id, partner.id, e.target);
+            this.addComboToCart(main.id, partner.id, widget);
         };
 
         this.injectStyles();
     },
 
-    // ... (Métodos addComboToCart, parsePrice, injectStyles iguales a V3) ...
-    addComboToCart: async function (id1, id2, btn) {
-        btn.innerText = "Agregando..."; btn.style.opacity = 0.7;
+    addComboToCart: async function (id1, id2, widget) {
+        const btn = widget.querySelector('.sb-btn');
+        const msg = widget.querySelector('.sb-msg');
+
+        btn.disabled = true;
+        btn.style.opacity = 0.5;
+        msg.innerText = "Agregando pack...";
+        msg.style.display = 'block';
+
         try {
-            await fetch('/cart/add', { method: 'POST', body: new URLSearchParams({ add_to_cart: id1, quantity: 1 }) });
-            await fetch('/cart/add', { method: 'POST', body: new URLSearchParams({ add_to_cart: id2, quantity: 1 }) });
-            window.location.href = '/cart';
+            // 1. Agregar Producto Main
+            await fetch('/comprar/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ add_to_cart: id1, quantity: 1 })
+            });
+
+            // 2. Agregar Partner
+            await fetch('/comprar/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ add_to_cart: id2, quantity: 1 })
+            });
+
+            msg.innerText = "¡Listo! Redirigiendo...";
+
+            // 3. Redirigir INTELIGENTE (Detecta idioma/país)
+            // Intentar usar LS.cart primero si existe
+            if (window.LS && window.LS.cart && window.LS.cart.show) {
+                window.LS.cart.show(); // Abrir carrito lateral si el tema lo soporta
+                btn.disabled = false;
+                btn.style.opacity = 1;
+                msg.style.display = 'none';
+            } else {
+                // Redirigir a checkout aplicando cupón si es posible
+                window.location.href = `/checkout/v3/start?coupon=${this.settings.couponCode}`;
+            }
+
         } catch (e) {
-            alert("Error al agregar combo.");
-            btn.innerText = "Error";
+            console.error("Cart Error:", e);
+            msg.innerText = "Error agregando. Intenta manualmente.";
+            // Fallback a redirección simple
+            window.location.href = '/checkout';
         }
     },
 
@@ -151,8 +163,8 @@ const SalesBooster = {
     injectStyles: function () {
         if (document.getElementById('sb-styles')) return;
         const css = `
-            .sb-combo-widget { margin: 25px 0; border: 2px dashed #e1e1e1; padding: 15px; border-radius: 8px; background: #fafafa; font-family: sans-serif; clear: both; width: 100%; box-sizing: border-box; }
-            .sb-header { font-size: 13px; font-weight: 800; color: #333; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+            .sb-combo-widget { margin: 25px 0; border: 2px dashed #27ae60; padding: 15px; border-radius: 8px; background: #f9fffb; font-family: sans-serif; clear: both; width: 100%; box-sizing: border-box; }
+            .sb-header { font-size: 13px; font-weight: 800; color: #27ae60; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
             .sb-body { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
             .sb-images { display: flex; align-items: center; gap: 8px; }
             .sb-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; background: #fff; }
@@ -163,12 +175,11 @@ const SalesBooster = {
             .sb-old { text-decoration: line-through; color: #aaa; font-size: 12px; }
             .sb-new { font-weight: 700; color: #27ae60; font-size: 16px; }
             .sb-tag { background: #27ae60; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-            .sb-btn { width: 100%; border: none; background: #222; color: #fff; padding: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: opacity 0.2s; }
-            .sb-btn:hover { opacity: 0.9; }
+            .sb-btn { width: 100%; border: none; background: #27ae60; color: #fff; padding: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: opacity 0.2s; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2); }
+            .sb-btn:hover { opacity: 0.9; transform: translateY(-1px); }
             
             @media (max-width: 480px) {
                 .sb-body { flex-direction: column; align-items: flex-start; }
-                .sb-thumb { width: 50px; height: 50px; }
             }
         `;
         const s = document.createElement('style'); s.id = 'sb-styles'; s.innerText = css; document.head.appendChild(s);
