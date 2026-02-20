@@ -10,7 +10,15 @@
     ],
     "products": [
       {
+        "id": "297465045",
+        "variant_id": "1450902688",
+        "name": "case PRO",
+        "price": "10000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/1e606a2597db16b1d4c5c4a6aa70c7d8-29c6d83fa7f2568a9717709449978521-1024-1024.webp"
+      },
+      {
         "id": "297463683",
+        "variant_id": "1327922942",
         "name": "Smash Charm",
         "price": "320000",
         "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-1024-1024.webp"
