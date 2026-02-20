@@ -1,28 +1,36 @@
-console.log("🚀 SalesBooster V1.0: Dynamic Combo Engine");
+console.log("🚀 SalesBooster V2.0: Backend-less Combo Engine (GitHub DB)");
 
 const SalesBooster = {
     settings: {
-        discountLabel: '10% OFF', // Visual only unless coupon applied
-        triggerSelector: '.js-product-detail, #product-container', // Donde inyectar
-        relatedSelector: '.js-related-product, .related-item, .item-product', // Donde buscar compañero
+        dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json', // TU BASE DE DATOS
+        discountLabel: 'PACK 10% OFF',
+        triggerSelector: '.js-addtocart, input[type="submit"]',
+        cacheKey: 'sb_combos_db'
     },
 
-    init: function () {
-        if (!document.querySelector('form[action*="/cart/add"]')) return; // Solo en PDP
+    init: async function () {
+        if (!document.querySelector('form[action*="/cart/add"]')) return;
 
-        // 1. Encontrar Candidato Cross-Sell
+        // 1. Obtener ID del Producto Actual
         const mainProduct = this.getMainProductData();
-        const partner = this.findPartnerProduct();
+        if (!mainProduct) return;
 
-        if (mainProduct && partner) {
-            this.renderComboWidget(mainProduct, partner);
+        // 2. Obtener DB de Combos (con Caché simple)
+        const db = await this.fetchCombosDB();
+        const partnerId = db[mainProduct.id];
+
+        if (partnerId) {
+            console.log(`✨ SalesBooster: Combo encontrado! ${mainProduct.id} + ${partnerId}`);
+            const partnerProduct = await this.fetchPartnerData(partnerId);
+            if (partnerProduct) {
+                this.renderComboWidget(mainProduct, partnerProduct);
+            }
         }
     },
 
     getMainProductData: function () {
-        // Datos del producto actual
         const img = document.querySelector('.js-product-slide-link img, .js-main-image, #main-image');
-        const priceEl = document.querySelector('#price_display, .price-display');
+        const priceEl = document.querySelector('#price_display, .price-display, .js-price-display');
         const form = document.querySelector('form[action*="/cart/add"]');
         const idInput = form ? form.querySelector('input[name="add_to_cart"]') : null;
 
@@ -32,153 +40,133 @@ const SalesBooster = {
             id: idInput.value,
             img: img.src,
             price: this.parsePrice(priceEl.innerText),
-            form: form // Necesario para variantes
+            name: document.querySelector('h1').innerText
         };
     },
 
-    findPartnerProduct: function () {
-        // Buscar productos relacionados en el DOM
-        const related = document.querySelector(this.settings.relatedSelector);
-        if (!related) return null;
+    fetchCombosDB: async function () {
+        // Cache simple en SessionStorage para no saturar GitHub
+        const cached = sessionStorage.getItem(this.settings.cacheKey);
+        if (cached) return JSON.parse(cached);
 
-        const img = related.querySelector('img');
-        const name = related.querySelector('.item-name, .product-name, h3, a');
-        const price = related.querySelector('.item-price, .price');
-        const link = related.querySelector('a'); // Necesitamos sacar el ID de la URL o data-attr
+        try {
+            const res = await fetch(this.settings.dbUrl + '?t=' + new Date().getTime()); // Anti-cache query
+            const data = await res.json();
+            sessionStorage.setItem(this.settings.cacheKey, JSON.stringify(data));
+            return data;
+        } catch (e) {
+            console.error("SalesBooster DB Error:", e);
+            return {};
+        }
+    },
 
-        if (!img || !name || !price || !link) return null;
+    fetchPartnerData: async function (id) {
+        // Truco: Usar la búsqueda interna o endpoint de producto si existe
+        // En Tiendanube, a veces /productos/ID redirige o carga.
+        // Si no, necesitamos la URL. Como solo tenemos ID, intentaremos buscarlo en la tienda.
+        // ESTRATEGIA: Buscar en la API de búsqueda de Tiendanube (generalmente /search/?q=ID)
 
-        // Intentar obtener ID desde el enlace o data attribute
-        // Esto es un hack común: sacar ID de la URL /productos/nombre-id123/
-        // O buscar un input hidden si existe
-        // Para V1 usaremos el enlace para hacer un fetch rápido y sacar el ID real si es necesario
-        // O asumimos que es un producto simple por ahora.
+        try {
+            // Opción A: Intentar fetchear el HTML de producto si supiéramos la URL.
+            // Opción B: Usar endpoint de búsqueda.
+            // Vamos a intentar obtener info via store API no documentada o búsqueda.
+            const searchRes = await fetch(`/search/?q=${id}`);
+            const html = await searchRes.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
 
-        return {
-            element: related,
-            name: name.innerText,
-            img: img.src,
-            price: this.parsePrice(price.innerText),
-            url: link.href
-        };
+            // Buscar el item en resultados (asumiendo que sale primero por ID exacto)
+            const item = doc.querySelector(`.js-item-product[data-product-id="${id}"], .item-product`);
+
+            if (!item) return null;
+
+            const name = item.querySelector('.item-name, .product-name, a[title]').innerText;
+            const img = item.querySelector('img').src; // Puede ser thumb
+            const priceStr = item.querySelector('.item-price, .price').innerText;
+            const url = item.querySelector('a').href;
+
+            return {
+                id: id,
+                name: name,
+                img: img,
+                price: this.parsePrice(priceStr),
+                url: url
+            };
+
+        } catch (e) {
+            console.error("Partner Data Error:", e);
+            return null;
+        }
     },
 
     renderComboWidget: function (main, partner) {
-        // CALCULOS
         const total = main.price + partner.price;
-        const discounted = Math.floor(total * 0.9); // 10% simulado visual
+        const discounted = Math.floor(total * 0.9); // Simulamos 10% OFF
 
-        // UI
         const widget = document.createElement('div');
         widget.className = 'sb-combo-widget';
         widget.innerHTML = `
-            <div class="sb-header">🔥 Comprados Juntos Frecuentemente</div>
-            <div class="sb-visual">
-                <div class="sb-img-box"><img src="${main.img}"></div>
-                <div class="sb-plus">+</div>
-                <div class="sb-img-box"><img src="${partner.img}"></div>
-            </div>
-            <div class="sb-info">
-                <div class="sb-partner-name">Llevate también: <strong>${partner.name}</strong></div>
-                <div class="sb-pricing">
-                    <span class="sb-total-price">$${total.toLocaleString('es-AR')}</span>
-                    <span class="sb-deal-price">$${discounted.toLocaleString('es-AR')}</span>
-                    <span class="sb-badge">${this.settings.discountLabel}</span>
+            <div class="sb-header">🔥 COMPRADOS JUNTOS FRECUENTEMENTE</div>
+            <div class="sb-body">
+                <div class="sb-images">
+                    <img src="${main.img}" class="sb-thumb">
+                    <span class="sb-plus">+</span>
+                    <img src="${partner.img}" class="sb-thumb">
                 </div>
-                <button class="sb-add-btn">AGREGAR PACK AL CARRITO 🛒</button>
+                <div class="sb-details">
+                    <div class="sb-partner-title">Llevate también: <strong>${partner.name}</strong></div>
+                    <div class="sb-prices">
+                        <span class="sb-old">$${total.toLocaleString('es-AR')}</span>
+                        <span class="sb-new">$${discounted.toLocaleString('es-AR')}</span>
+                        <span class="sb-tag">${this.settings.discountLabel}</span>
+                    </div>
+                </div>
             </div>
+            <button class="sb-btn">AGREGAR PACK AL CARRITO 🛒</button>
         `;
 
-        // INJECT
-        const target = document.querySelector('.js-addtocart, input[type="submit"]');
-        if (target) target.parentNode.insertBefore(widget, target.nextSibling);
+        const target = document.querySelector(this.settings.triggerSelector);
+        if (target) target.parentElement.insertBefore(widget, target.nextSibling);
 
-        // LOGIC
-        widget.querySelector('.sb-add-btn').onclick = (e) => {
+        widget.querySelector('.sb-btn').onclick = (e) => {
             e.preventDefault();
-            this.addComboToCart(main, partner, e.target);
+            this.addComboToCart(main.id, partner.id, e.target);
         };
 
         this.injectStyles();
     },
 
-    addComboToCart: async function (main, partner, btn) {
-        btn.innerText = "⏳ Procesando...";
-        btn.disabled = true;
-
-        // Fetch ID real del partner si no lo tenemos
-        let partnerId = partner.id;
-        if (!partnerId) {
-            try {
-                const res = await fetch(partner.url);
-                const html = await res.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const form = doc.querySelector('form[action*="/cart/add"]');
-                partnerId = form.querySelector('input[name="add_to_cart"]').value;
-            } catch (e) {
-                console.error("Error fetching partner ID", e);
-                btn.innerText = "Error ❌";
-                return;
-            }
-        }
-
-        // Add Main + Partner
+    addComboToCart: async function (id1, id2, btn) {
+        btn.innerText = "Agregando..."; btn.disabled = true;
         try {
-            // Asumimos API standard de Tiendanube /cart/add
-            // 1. Main
-            await fetch('/cart/add', {
-                method: 'POST',
-                body: new URLSearchParams({ add_to_cart: main.id, quantity: 1 }),
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
-
-            // 2. Partner
-            await fetch('/cart/add', {
-                method: 'POST',
-                body: new URLSearchParams({ add_to_cart: partnerId, quantity: 1 }),
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
-
-            // Redirect to Cart
+            await fetch('/cart/add', { method: 'POST', body: new URLSearchParams({ add_to_cart: id1, quantity: 1 }) });
+            await fetch('/cart/add', { method: 'POST', body: new URLSearchParams({ add_to_cart: id2, quantity: 1 }) });
             window.location.href = '/cart';
-
-        } catch (err) {
-            console.error(err);
-            btn.innerText = "Error 😓";
-            alert("No se pudo agregar el combo. Intenta manualmente.");
+        } catch (e) {
+            alert("Error al agregar combo.");
+            btn.innerText = "Error";
         }
     },
 
     parsePrice: function (str) {
-        // Limpiar "$ 1.500,00" -> 1500
         return parseFloat(str.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
     },
 
     injectStyles: function () {
         const css = `
-            .sb-combo-widget {
-                background: #f9f9f9; border: 2px dashed #333;
-                border-radius: 8px; padding: 15px; margin: 20px 0;
-                font-family: 'Helvetica Neue', sans-serif;
-            }
-            .sb-header { font-weight: 800; text-transform: uppercase; margin-bottom: 10px; color: #333; font-size: 12px; letter-spacing: 1px; }
-            .sb-visual { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
-            .sb-img-box { width: 60px; height: 60px; background: #fff; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; }
-            .sb-img-box img { width: 100%; height: 100%; object-fit: cover; }
-            .sb-plus { font-size: 20px; font-weight: bold; color: #888; }
-            .sb-info { text-align: center; }
-            .sb-partner-name { font-size: 12px; margin-bottom: 5px; color: #555; }
-            .sb-pricing { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
-            .sb-total-price { text-decoration: line-through; color: #999; font-size: 12px; }
-            .sb-deal-price { font-weight: 800; font-size: 16px; color: #222; }
-            .sb-badge { background: #222; color: #fff; padding: 2px 6px; font-size: 10px; font-weight: bold; border-radius: 3px; }
-            .sb-add-btn {
-                width: 100%; background: #27ae60; color: #fff; border: none; padding: 12px;
-                font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 4px;
-                transition: background 0.2s;
-            }
-            .sb-add-btn:hover { background: #219150; }
+            .sb-combo-widget { margin: 25px 0; border: 2px dashed #e1e1e1; padding: 15px; border-radius: 8px; background: #fafafa; font-family: sans-serif; }
+            .sb-header { font-size: 13px; font-weight: 800; color: #333; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+            .sb-body { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+            .sb-images { display: flex; align-items: center; gap: 8px; }
+            .sb-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; background: #fff; }
+            .sb-plus { color: #999; font-weight: bold; font-size: 18px; }
+            .sb-details { flex: 1; }
+            .sb-partner-title { font-size: 13px; color: #555; margin-bottom: 4px; line-height: 1.3; }
+            .sb-prices { display: flex; align-items: center; gap: 8px; }
+            .sb-old { text-decoration: line-through; color: #aaa; font-size: 12px; }
+            .sb-new { font-weight: 700; color: #27ae60; font-size: 16px; }
+            .sb-tag { background: #27ae60; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+            .sb-btn { width: 100%; border: none; background: #222; color: #fff; padding: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: opacity 0.2s; }
+            .sb-btn:hover { opacity: 0.9; }
         `;
         const s = document.createElement('style'); s.innerText = css; document.head.appendChild(s);
     }
