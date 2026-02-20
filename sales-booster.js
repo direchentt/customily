@@ -1,4 +1,4 @@
-// SalesBooster V8.0 — Multi-Product | Discount Engine | Smart Logic
+// SalesBooster V8.4 — Cupones nativos Tiendanube, sin backend
 // https://github.com/direchentt/customily
 
 (function () {
@@ -6,7 +6,6 @@
 
     const CONFIG = {
         dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json',
-        backendUrl: 'http://localhost:3001',  // servidor local con acceso a la API de Tiendanube
         cartEndpoint: '/comprar/',
         cartTriggerSelector: '.js-modal-open[href*="cart"], .js-modal-open.js-fullscreen-modal-open, [data-target="fullscreen-cart"]',
         injectAfterSelectors: ['.js-product-form', '#product_form', '.js-addtocart', '.product-buy-container'],
@@ -80,35 +79,40 @@
 
     // ─── RENDER WIDGET ───
     function renderWidget(main, combo) {
+        // combo.products = TODOS los productos del pack (incluyendo el que está en la página)
         const products = combo.products || [];
         if (products.length === 0) return;
 
         const discount = parseInt(combo.discount) || 0;
-        const totalPack = products.reduce((s, p) => s + parsePrice(p.price), main.price);
+
+        // Calcular totales SIN sumar main por separado (ya está en products)
+        const totalPack = products.reduce((s, p) => s + parsePrice(p.price), 0);
         const discountedTotal = Math.floor(totalPack * (1 - discount / 100));
         const savings = totalPack - discountedTotal;
+
+        // Identificar los productos del pack que NO son el actual (para no duplicar visualmente)
+        const mainId = String(main.id);
+        const partnerProducts = products.filter(p => String(p.id) !== mainId);
+        // Si están todos en partnerProducts (el principal no está en la lista), incluirlo
+        const allForDisplay = partnerProducts.length < products.length
+            ? [{ id: main.id, name: main.name, price: String(main.price), image: main.img }, ...partnerProducts]
+            : products;
+
+        const couponCode = combo.coupon || null;
 
         const widget = document.createElement('div');
         widget.className = 'sb-widget';
         widget.id = 'sb-combo-widget';
-
-        const couponCode = combo.coupon || null;
 
         widget.innerHTML = `
             ${combo.badge ? `<div class="sb-badge">${combo.badge}</div>` : ''}
             <div class="sb-title">${combo.label || '🔥 MEJOR JUNTOS'}</div>
 
             <div class="sb-products">
-                <div class="sb-product-item">
-                    <img src="${main.img}" alt="${main.name}" class="sb-product-img" />
-                    <div class="sb-product-name">${main.name}</div>
-                    <div class="sb-product-price">$${fmt(main.price)}</div>
-                </div>
-
-                ${products.map(p => `
-                    <div class="sb-separator">+</div>
+                ${allForDisplay.map((p, i) => `
+                    ${i > 0 ? '<div class="sb-separator">+</div>' : ''}
                     <div class="sb-product-item">
-                        <img src="${p.image}" alt="${p.name}" class="sb-product-img" />
+                        <img src="${p.image || p.img || ''}" alt="${p.name}" class="sb-product-img" />
                         <div class="sb-product-name">${p.name}</div>
                         <div class="sb-product-price">$${fmt(parsePrice(p.price))}</div>
                     </div>
@@ -133,12 +137,10 @@
 
             <button class="sb-cta" id="sb-cta-btn">
                 <span class="sb-cta-text">🛒 AGREGAR PACK Y PAGAR CON ${discount}% OFF</span>
-                <span class="sb-cta-loading" style="display:none">⏳ Preparando pack...</span>
+                <span class="sb-cta-loading" style="display:none">⏳ Agregando pack...</span>
             </button>
-            <div class="sb-disclaimer">${couponCode ? `Descuento aplicado automáticamente al checkout.` : 'Ambos productos se agregan al carrito.'}</div>
-            <div class="sb-success" style="display:none">
-                ✅ ¡Pack agregado! Redirigiendo al checkout...
-            </div>
+            <div class="sb-disclaimer">${couponCode ? 'Descuento aplicado automáticamente al ir al checkout.' : 'Todos los productos se agregan al carrito.'}</div>
+            <div class="sb-success" style="display:none"></div>
         `;
 
         // Inyección
@@ -155,17 +157,16 @@
             (document.querySelector('.js-product-detail') || document.body).appendChild(widget);
         }
 
-        // CTA Handler
         widget.querySelector('#sb-cta-btn').addEventListener('click', function (e) {
             e.preventDefault();
-            addComboToCart(main, products, widget, combo);
+            addComboToCart(products, widget, combo);
         });
 
         injectStyles();
     }
 
-    // ─── ADD TO CART (carrito nativo + cupón dinámico via API) ───
-    async function addComboToCart(main, partners, widget, combo) {
+    // ─── ADD TO CART (todos los productos del combo + cupón estático) ───
+    async function addComboToCart(products, widget, combo) {
         const btn = widget.querySelector('#sb-cta-btn');
         const textEl = widget.querySelector('.sb-cta-text');
         const loadEl = widget.querySelector('.sb-cta-loading');
@@ -177,63 +178,56 @@
         loadEl.style.display = 'inline';
 
         try {
+            // Leer variant_id del producto actual (puede cambiar si el usuario seleccionó talla)
             const variantInput = document.querySelector('input[name="variant_id"], select[name="variant_id"]');
-            const variantId = variantInput ? variantInput.value : main.variantId;
+            const currentVariantId = variantInput?.value;
+            const currentProductId = document.querySelector('input[name="add_to_cart"]')?.value;
 
-            // PASO 1 + 2 en paralelo: agregar productos al carrito Y crear cupón simultáneamente
-            const cartPromises = [
-                // Producto principal
-                fetch(CONFIG.cartEndpoint, {
+            // Agregar TODOS los productos del combo al carrito en paralelo
+            const adds = products.map(p => {
+                const params = new URLSearchParams({ add_to_cart: p.id, quantity: 1 });
+                // Si este producto es el que está en la página, usar el variant_id seleccionado
+                if (String(p.id) === String(currentProductId) && currentVariantId) {
+                    params.append('variant_id', currentVariantId);
+                }
+                return fetch(CONFIG.cartEndpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ add_to_cart: main.id, quantity: 1, ...(variantId ? { variant_id: variantId } : {}) }).toString(),
+                    body: params.toString(),
                     redirect: 'manual'
-                }),
-                // Productos del pack
-                ...partners.map(p => fetch(CONFIG.cartEndpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ add_to_cart: p.id, quantity: 1 }).toString(),
-                    redirect: 'manual'
-                })),
-            ];
+                });
+            });
 
-            // Cupón dinámico vía nuestro backend (solo si tiene descuento configurado)
-            const couponPromise = (combo.discount > 0)
-                ? fetch(`${CONFIG.backendUrl}/api/create-coupon`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ discount_percent: combo.discount, combo_id: combo.id })
-                }).then(r => r.json()).catch(() => ({ success: false, coupon: null }))
-                : Promise.resolve({ success: false, coupon: null });
+            await Promise.all(adds);
 
-            // Esperar todo en paralelo
-            const [, couponData] = await Promise.all([Promise.all(cartPromises), couponPromise]);
-
-            // PASO 3: Mostrar éxito y redirigir
+            // Mostrar éxito
             loadEl.style.display = 'none';
             btn.style.display = 'none';
-            disclaimer.style.display = 'none';
+            if (disclaimer) disclaimer.style.display = 'none';
             successEl.style.display = 'block';
 
-            const coupon = couponData?.coupon;
+            const coupon = combo.coupon || null;
             if (coupon) {
-                successEl.innerHTML = `✅ ¡Pack listo! Redirigiendo con ${combo.discount}% OFF...`;
+                // Redirigir al checkout con el cupón pre-aplicado
+                successEl.innerHTML = `✅ ¡Pack listo! Redirigiendo — ${combo.discount}% OFF aplicado...`;
                 setTimeout(() => {
                     window.location.href = `/checkout/v3/start?coupon=${encodeURIComponent(coupon)}`;
-                }, 700);
+                }, 800);
             } else {
-                // Sin cupón (descuento = 0 o backend caído) → abrir carrito normal
-                successEl.innerHTML = `✅ ¡Pack agregado! <a href="/cart">Ver carrito →</a>`;
-                const cartTrigger = document.querySelector(CONFIG.cartTriggerSelector);
-                if (cartTrigger) setTimeout(() => cartTrigger.click(), 400);
+                // Sin cupón configurado → abrir carrito lateral o ir a /cart
+                successEl.innerHTML = `✅ ¡Pack agregado al carrito!`;
+                setTimeout(() => {
+                    const trigger = document.querySelector(CONFIG.cartTriggerSelector);
+                    if (trigger) trigger.click();
+                    else window.location.href = '/cart';
+                }, 500);
             }
 
         } catch (e) {
             console.warn('[SalesBooster] Error:', e.message);
             loadEl.style.display = 'none';
             textEl.style.display = 'inline';
-            textEl.textContent = '⚠️ Error al agregar. Intenta de nuevo.';
+            textEl.textContent = '⚠️ Error al agregar. Intentá de nuevo.';
             btn.disabled = false;
         }
     }

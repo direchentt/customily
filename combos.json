@@ -3,6 +3,7 @@
     "id": "combo_1771561275465",
     "label": "Pack invierno",
     "badge": "Más vendido",
+    "coupon": "PACK20",
     "discount": 20,
     "triggers": [
       "295871862",
@@ -26,14 +27,15 @@
         "id": "295871869",
         "name": "Cap Love",
         "price": "$110.000,00",
-        "image": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/thearchivalbeanie_drop10_1_e06ba695-25e9-407b-a6b9-96b3bd43e29f-jpg-30cfcd0ebb3c3b08d517713779168440-480-0.webp"
       }
     ]
   },
   {
     "id": "combo_1771561310887",
     "label": "Pack íntimo",
-    "badge": "últimas unidades",
+    "badge": "Últimas unidades",
+    "coupon": "PACK25",
     "discount": 25,
     "triggers": [
       "295871879",
@@ -44,21 +46,21 @@
         "id": "295871879",
         "name": "Boxers Cafeína 2.x",
         "price": "$70.000,00",
-        "image": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/cafeina-boxer-frente-baja_0196ae4a-59e2-4c5d-834b-6e073e06d02c-jpg-a0f9cfdf23ab23d3cd17713777001134-480-0.webp"
       },
       {
         "id": "295871885",
         "name": "Boxers Cerami 2.x",
         "price": "$70.000,00",
-        "image": "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/cerami-boxer-frente-baja_5278c3e5-c649-4b2d-9b42-6046ae5f0680-jpg-bb20a4f55cedd0c52a17713777001134-480-0.webp"
       }
     ]
   },
   {
     "id": "combo_1771561678239",
-    "label": "Bag",
+    "label": "Pack Bags",
     "badge": "Más vendido",
-    "coupon": "",
+    "coupon": "PACK35",
     "discount": 35,
     "triggers": [
       "295871887",
@@ -90,7 +92,7 @@
     "id": "combo_1771562325561",
     "label": "Pack Ring Reishi",
     "badge": "",
-    "coupon": "",
+    "coupon": "PACK10",
     "discount": 10,
     "triggers": [
       "295871908",
@@ -98,13 +100,13 @@
     ],
     "products": [
       {
-        "id": "301225727",
-        "name": "MIRROR ERRORR",
+        "id": "295871908",
+        "name": "Ring Reishi",
         "price": "$115.000,00",
         "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_au_bracelet_sem_45_1-ad19170ea63c0410e517709460143266-240-0.webp"
       },
       {
-        "id": "297463683",
+        "id": "325098020",
         "name": "Smash Charm",
         "price": "$194.000,00",
         "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-240-0.webp"
@@ -113,9 +115,9 @@
   },
   {
     "id": "combo_1771562342627",
-    "label": "Pack Elemental Wallet",
+    "label": "Pack Wallets",
     "badge": "",
-    "coupon": "",
+    "coupon": "PACK75",
     "discount": 75,
     "triggers": [
       "325083548",
