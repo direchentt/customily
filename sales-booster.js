@@ -206,23 +206,21 @@
             successEl.style.display = 'block';
 
             const coupon = combo.coupon || null;
-            const checkoutBase = '/checkout'; // Tiendanube redirigirá a la sesión correcta
 
             if (coupon) {
-                // Redirigir al inicio del checkout pasando el cupón
-                successEl.innerHTML = `✅ ¡Pack listo! Redirigiendo con ${combo.discount}% OFF...`;
+                // Copiar al portapapeles y redirigir
+                try { navigator.clipboard.writeText(coupon); } catch (e) { }
+
+                successEl.innerHTML = `✅ ¡Pack listo! Cupón <b>${coupon}</b> copiado.<br>Redirigiendo...`;
+
                 setTimeout(() => {
-                    // Algunos temas soportan ?coupon= en /checkout, otros requieren aplicarlo después.
-                    // Intentamos pasarlo en la URL base.
-                    window.location.href = `${checkoutBase}?coupon=${encodeURIComponent(coupon)}`;
-                }, 800);
+                    // Redirigir a /checkout LIMPIO para evitar errores 404 por parámetros inválidos
+                    window.location.href = '/checkout';
+                }, 1500);
             } else {
-                // Sin cupón configurado → abrir carrito lateral o ir a /cart
                 successEl.innerHTML = `✅ ¡Pack agregado al carrito!`;
                 setTimeout(() => {
-                    const trigger = document.querySelector(CONFIG.cartTriggerSelector);
-                    if (trigger) trigger.click();
-                    else window.location.href = '/cart';
+                    window.location.href = '/checkout';
                 }, 500);
             }
 
