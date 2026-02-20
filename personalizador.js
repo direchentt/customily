@@ -1,275 +1,320 @@
-console.log("🚀 Customily V3.3: Robust Cart Integration");
+console.log("🚀 Customily V4: Universal & Collapsible");
 
-// --- 1. UI CSS (Misma estética premium) ---
+// INYECCIÓN DE ESTILOS CSS - ¡Premium Design!
 const styles = `
-    .custom-variant-container { margin: 25px 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
-    .custom-variant-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .custom-variant-title { font-size: 13px; font-weight: 700; text-transform: uppercase; color: #111; }
-    .custom-variant-selected { font-size: 13px; font-weight: 400; color: #666; text-transform: capitalize; }
-    .custom-variant-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
-    .custom-pill { padding: 10px 20px; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; background: #fff; color: #333; font-size: 14px; transition: all 0.2s; min-width: 60px; text-align: center; }
-    .custom-pill:hover { border-color: #999; }
-    .custom-pill.active { background: #111; color: #fff; border-color: #111; }
-    .custom-swatch { width: 42px; height: 42px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px #ddd; transition: all 0.2s; position: relative; }
-    .custom-swatch:hover { transform: scale(1.1); }
-    .custom-swatch.active { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111; transform: scale(1.15); }
-    .custom-swatch.white-swatch { background: #fff; background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%); background-size: 10px 10px; }
-    .custom-text-panel { margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee; }
-    .custom-input-text { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
-    .custom-overlay-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-90deg); color: white; font-size: 40px; font-weight: 700; pointer-events: none; z-index: 100; text-shadow: 0 2px 8px rgba(0,0,0,0.4); font-family: 'Helvetica', sans-serif; text-transform: uppercase; white-space: nowrap; }
+    .custom-trigger-btn {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0 20px 0;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        color: #333;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+        font-family: 'Helvetica', sans-serif;
+    }
+    .custom-trigger-btn:hover { background: #e9ecef; }
+    .custom-trigger-btn.active { background: #e3f2fd; border-color: #2196f3; color: #1976d2; }
+    
+    .custom-panel {
+        display: none; /* Oculto por defecto */
+        padding: 15px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        margin-top: -21px; /* Pegarlo al botón */
+        margin-bottom: 20px;
+        animation: slideDown 0.3s ease-out;
+    }
+    .custom-panel.visible { display: block; }
+
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .custom-label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; text-transform: uppercase; }
+    .custom-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 12px; font-size: 16px; }
+    
+    .custom-options-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .custom-color-circle { 
+        width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px #ddd; 
+        transition: transform 0.2s;
+    }
+    .custom-color-circle:hover { transform: scale(1.1); }
+    .custom-color-circle.active { transform: scale(1.2); box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333; }
+
+    .custom-font-pill {
+        padding: 6px 12px; border: 1px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 12px; background: #fff;
+    }
+    .custom-font-pill.active { background: #333; color: #fff; border-color: #333; }
+
+    /* Overlay Estilos */
+    .custom-overlay-text {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-90deg);
+        color: white; font-size: 30px; font-weight: 700; pointer-events: none; z-index: 100;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5); white-space: nowrap;
+    }
 `;
 const styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
-const COLOR_MAP = {
-    'negro': '#000000', 'black': '#000000', 'blanco': '#ffffff', 'white': '#ffffff',
-    'rojo': '#D32F2F', 'red': '#D32F2F', 'azul': '#1976D2', 'blue': '#1976D2',
-    'verde': '#388E3C', 'green': '#388E3C', 'rosa': '#E91E63', 'pink': '#E91E63',
-    'amarillo': '#FBC02D', 'yellow': '#FBC02D', 'gris': '#9E9E9E', 'grey': '#9E9E9E',
-    'violeta': '#8E24AA', 'purple': '#8E24AA', 'naranja': '#F57C00', 'orange': '#F57C00',
-    'marron': '#795548', 'brown': '#795548', 'dorado': '#FFD700', 'gold': '#FFD700'
-};
+// CONFIGURACIÓN
+const FONTS = [
+    { name: 'Moderna', family: 'Helvetica, sans-serif' },
+    { name: 'Clásica', family: 'Times New Roman, serif' },
+    { name: 'Cursiva', family: 'Brush Script MT, cursive' }
+];
+const COLORS = [
+    { name: 'Blanco', hex: '#FFFFFF' },
+    { name: 'Negro', hex: '#000000' },
+    { name: 'Dorado', hex: '#FFD700' },
+    { name: 'Rosa', hex: '#FF69B4' }
+];
 
-let activeText = "";
+// ESTADO GLOBAL (Por formulario, ya que puede haber varios en QuickView)
+// Usaremos WeakMap para asociar estado a cada formulario
+const formStates = new WeakMap();
 
-function initSystem() {
-    if (!window.location.pathname.includes('/productos/')) return;
+function initObserver() {
+    console.log("👀 Iniciando Observador Universal de Formularios...");
 
-    // Buscar contenedor nativo
-    const originalVariantContainer = document.querySelector('.js-product-variants, .product-variants');
-    if (!originalVariantContainer) {
-        initTextFieldOnly();
-        return;
-    }
-    if (document.getElementById('custom-ui-root')) return;
+    // Configurar MutationObserver para detectar nuevos formularios (Popups, QuickView)
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length) {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) { // Solo elementos HTML
+                        // Si el nodo es un form o contiene uno
+                        const forms = node.matches?.('.js-product-form, form[action*="/cart/add"]')
+                            ? [node]
+                            : node.querySelectorAll?.('.js-product-form, form[action*="/cart/add"]');
 
-    // Ocultar nativo
-    originalVariantContainer.style.display = 'none';
-    originalVariantContainer.parentElement.querySelectorAll('label:not(.custom-label)').forEach(l => l.style.display = 'none');
-
-    // Construir UI
-    const root = document.createElement('div');
-    root.id = 'custom-ui-root';
-    root.className = 'custom-variant-container';
-
-    // Generar botones
-    originalVariantContainer.querySelectorAll('select').forEach((select) => {
-        const wrapper = document.createElement('div');
-        let labelText = "Opción";
-        const parentGroup = select.closest('.js-product-variants-group, .product-variants-group');
-        if (parentGroup && parentGroup.querySelector('label')) {
-            labelText = parentGroup.querySelector('label').innerText.replace(':', '').trim();
-        }
-
-        const header = document.createElement('div');
-        header.className = 'custom-variant-header';
-        header.innerHTML = `<span class="custom-variant-title">${labelText}</span><span class="custom-variant-selected"></span>`;
-        wrapper.appendChild(header);
-
-        const grid = document.createElement('div');
-        grid.className = 'custom-variant-grid';
-        const isColorType = /color|cor|colour/i.test(labelText);
-
-        Array.from(select.options).forEach(opt => {
-            if (!opt.value) return;
-            const val = opt.text.trim();
-            const cleanVal = val.split('(')[0].trim();
-            const btn = document.createElement('div');
-            btn.title = cleanVal;
-
-            if (isColorType) {
-                btn.className = 'custom-swatch';
-                const hex = getHexColor(cleanVal);
-                btn.style.backgroundColor = hex;
-                if (hex === '#ffffff' || hex === 'transparent') btn.classList.add('white-swatch');
-            } else {
-                btn.className = 'custom-pill';
-                btn.innerText = cleanVal;
+                        forms?.forEach(injectApp);
+                    }
+                });
             }
-
-            if (select.value === opt.value) {
-                btn.classList.add('active');
-                header.querySelector('.custom-variant-selected').innerText = cleanVal;
-                updateProductImageOverlay();
-            }
-
-            btn.addEventListener('click', () => {
-                grid.querySelectorAll('.active').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                header.querySelector('.custom-variant-selected').innerText = cleanVal;
-                select.value = opt.value;
-                select.dispatchEvent(new Event('change', { bubbles: true }));
-                setTimeout(() => updateProductImageOverlay(), 400);
-            });
-            grid.appendChild(btn);
         });
-        wrapper.appendChild(grid);
-        root.appendChild(wrapper);
     });
 
-    root.appendChild(createTextPanel());
-    originalVariantContainer.parentNode.insertBefore(root, originalVariantContainer);
+    observer.observe(document.body, { childList: true, subtree: true });
 
-    // Preparar inputs ocultos en el formulario nativo DESDE EL INICIO
-    prepareFormInputs();
-
-    // Activar Hijack
-    interceptAddToCart();
-    startImageWatch();
+    // Inyectar en los que ya existen al cargar
+    document.querySelectorAll('.js-product-form, form[action*="/cart/add"]').forEach(injectApp);
 }
 
-function createTextPanel() {
-    const p = document.createElement('div');
-    p.className = 'custom-text-panel';
-    p.innerHTML = '<div class="custom-variant-title" style="margin-bottom:10px">✍️ PERSONALIZACIÓN</div>';
+function injectApp(form) {
+    if (form.dataset.customilyInjected) return; // Evitar duplicados
+    form.dataset.customilyInjected = "true";
 
-    // Este input es para el usuario visualmente
+    console.log("✨ Inyectando Personalizador en:", form);
+
+    // Estado inicial para este form
+    const state = {
+        active: false,
+        text: "",
+        color: COLORS[0].hex,
+        font: FONTS[0].family
+    };
+    formStates.set(form, state);
+
+    // 1. Crear Botón Desplegable
+    const trigger = document.createElement('div');
+    trigger.className = 'custom-trigger-btn';
+    trigger.innerHTML = '<span>✨ Personalizar (+ $0)</span> <span style="font-size:10px">▼</span>';
+
+    // 2. Crear Panel Oculto
+    const panel = document.createElement('div');
+    panel.className = 'custom-panel';
+
+    // -- Contenido del Panel --
+
+    // Input Texto
+    const labelText = document.createElement('label');
+    labelText.className = 'custom-label';
+    labelText.innerText = "Tu Nombre / Frase:";
+    panel.appendChild(labelText);
+
     const input = document.createElement('input');
     input.type = 'text';
-    input.className = 'custom-input-text';
-    input.placeholder = 'Escribe tu nombre... (Máx 12)';
-    input.maxLength = 12;
-    input.id = 'visual-text-input';
-
+    input.className = 'custom-input';
+    input.placeholder = 'Escribe aquí...';
+    input.maxLength = 15;
     input.addEventListener('input', (e) => {
-        activeText = e.target.value.toUpperCase();
-        updateProductImageOverlay();
-        syncInputs(activeText); // Sincronizar con campos ocultos
+        state.text = e.target.value;
+        updateOverlay(form, state);
+    });
+    panel.appendChild(input);
+
+    // Selector Color
+    const labelColor = document.createElement('label');
+    labelColor.className = 'custom-label';
+    labelColor.innerText = "Color del Texto:";
+    panel.appendChild(labelColor);
+
+    const colorGrid = document.createElement('div');
+    colorGrid.className = 'custom-options-row';
+    COLORS.forEach(c => {
+        const circle = document.createElement('div');
+        circle.className = 'custom-color-circle';
+        circle.style.backgroundColor = c.hex;
+        circle.title = c.name;
+        if (c.hex === state.color) circle.classList.add('active');
+
+        circle.addEventListener('click', () => {
+            state.color = c.hex;
+            colorGrid.querySelectorAll('.active').forEach(cl => cl.classList.remove('active'));
+            circle.classList.add('active');
+            updateOverlay(form, state);
+        });
+        colorGrid.appendChild(circle);
+    });
+    panel.appendChild(colorGrid);
+
+    // Selector Fuente
+    const labelFont = document.createElement('label');
+    labelFont.className = 'custom-label';
+    labelFont.innerText = "Tipografía:";
+    panel.appendChild(labelFont);
+
+    const fontRow = document.createElement('div');
+    fontRow.className = 'custom-options-row';
+    FONTS.forEach(f => {
+        const pill = document.createElement('div');
+        pill.className = 'custom-font-pill';
+        pill.innerText = f.name;
+        pill.style.fontFamily = f.family;
+        if (f.family === state.font) pill.classList.add('active');
+
+        pill.addEventListener('click', () => {
+            state.font = f.family;
+            fontRow.querySelectorAll('.active').forEach(pl => pl.classList.remove('active'));
+            pill.classList.add('active');
+            updateOverlay(form, state);
+        });
+        fontRow.appendChild(pill);
+    });
+    panel.appendChild(fontRow);
+
+    // -- Lógica Desplegable --
+    trigger.addEventListener('click', () => {
+        state.active = !state.active;
+        panel.classList.toggle('visible');
+        trigger.classList.toggle('active');
+        trigger.innerHTML = state.active
+            ? '<span>✨ Personalizando...</span> <span style="font-size:10px">▲</span>'
+            : '<span>✨ Personalizar (+ $0)</span> <span style="font-size:10px">▼</span>';
+
+        // Si cierra, limpiamos visualmente (opcional)
+        // updateOverlay(form, state); 
     });
 
-    p.appendChild(input);
-    return p;
-}
+    // Insertar en Formulario (Antes del botón agregar)
+    const addToCartBtn = form.querySelector('.js-addtocart, input[type="submit"], button[type="submit"]');
+    if (addToCartBtn) {
+        form.insertBefore(trigger, addToCartBtn);
+        form.insertBefore(panel, addToCartBtn);
 
-function prepareFormInputs() {
-    const form = document.querySelector('.js-product-form, .js-addtocart-form, form[action*="/cart/add"]');
-    if (!form) return;
-
-    // Creamos inputs ocultos que viajan "naturalmente" con el form
-    // Usamos 'note' como fallback seguro si 'properties' falla
-    if (!form.querySelector('input[name="properties[Personalizacion]"]')) {
-        const i1 = document.createElement('input');
-        i1.type = 'hidden';
-        i1.name = 'properties[Personalizacion]';
-        i1.id = 'hidden-prop-input';
-        form.appendChild(i1);
+        // Hijack del botón para enviar datos
+        hijackSubmit(form, addToCartBtn, state);
     }
 }
 
-function syncInputs(text) {
-    const i1 = document.getElementById('hidden-prop-input');
-    if (i1) i1.value = text;
-}
+function updateOverlay(form, state) {
+    if (!state.text && !state.active) return; // Si no hay nada, no mostrar
 
-// --- SECUESTRO AJAX INTELIGENTE ---
-function interceptAddToCart() {
-    const form = document.querySelector('.js-product-form, .js-addtocart-form, form[action*="/cart/add"]');
-    const btn = form ? form.querySelector('.js-addtocart, input[type="submit"], button[type="submit"]') : null;
+    // Buscar la imagen del producto asociada a ESTE formulario
+    // En QuickView, la imagen suele estar en un contenedor hermano o padre cercano
+    // Estrategia: Buscar hacia arriba el contenedor del producto (.product-container) y bajar a la imagen
+    const productContainer = form.closest('.js-product-container, .product-container, .quick-shop-modal');
+    let imgContainer = null;
 
-    if (btn && form) {
-        console.log("🛡️ Activando protocolo de compra segura...");
-
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-
-        newBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-
-            // Texto del botón
-            const originalText = newBtn.value || newBtn.innerText;
-            if (newBtn.tagName === 'INPUT') newBtn.value = "Procesando...";
-            else newBtn.innerText = "Procesando...";
-            newBtn.disabled = true;
-
-            const textValue = activeText;
-            console.log("🛒 Intentando agregar al carrito:", textValue);
-
-            // Intentar usar la API oficial LS si existe (Método 1 - El mejor)
-            if (typeof LS !== 'undefined' && LS.addToCart) {
-                console.log("✅ Usando LS.addToCart API oficial");
-                // Buscar variante seleccionada
-                const variantInput = form.querySelector('input[name="variation_id"], select[name="variation_id"]');
-                const variantId = variantInput ? variantInput.value : null;
-
-                if (variantId) {
-                    // LS.addToCart(id, qty, callback) - No acepta properties directamente en versiones viejas
-                    // Así que usaremos AJAX directo a /cart/add
-                    directAjaxAdd(form, newBtn, originalText);
-                } else {
-                    // Fallback a submit nativo
-                    console.log("⚠️ No se encontró ID variante, usando submit nativo");
-                    form.submit();
-                }
-            } else {
-                // Método 2 - AJAX Directo a /cart/add
-                console.log("✅ Usando AJAX Directo /cart/add");
-                directAjaxAdd(form, newBtn, originalText);
-            }
-        });
-    }
-}
-
-function directAjaxAdd(form, btn, originalText) {
-    const formData = new FormData(form);
-
-    // Asegurar que nuestra personalización vaya
-    if (activeText) {
-        formData.set('properties[Personalizacion]', activeText);
+    if (productContainer) {
+        // Intentar encontrar la imagen activa dentro de este contenedor
+        const img = productContainer.querySelector('.js-product-slide-img, .swiper-slide-active img, .product-image-container img');
+        if (img) imgContainer = img.parentElement;
+    } else {
+        // Fallback global (Page Product)
+        const img = document.querySelector('.js-product-slide-img, .product-image-container img');
+        if (img) imgContainer = img.parentElement;
     }
 
-    // URL Absoluta estándar de Tiendanube
-    const url = '/cart/add';
+    if (imgContainer) {
+        if (getComputedStyle(imgContainer).position === 'static') imgContainer.style.position = 'relative';
 
-    fetch(url, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
+        let overlay = imgContainer.querySelector('.custom-overlay-text');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'custom-overlay-text';
+            imgContainer.appendChild(overlay);
         }
-    })
-        .then(response => {
-            // Tiendanube a veces devuelve redirect (status 200 pero url cambia) o JSON
-            if (response.ok) {
-                console.log("🎉 Éxito AJAX");
-                window.location.href = '/cart'; // Ir al carrito para verificar
-            } else {
-                throw new Error('Error en respuesta AJAX');
-            }
-        })
-        .catch(err => {
-            console.error("⚠️ Falló AJAX, intentando submit nativo (Fallback)...", err);
-            // PLAN Z: Enviar formulario nativo (recargará la página)
-            // Ya tenemos los inputs ocultos inyectados, así que deberían viajar
-            form.submit();
-        });
-}
 
-function getHexColor(name) {
-    const k = name.toLowerCase().replace(/\s/g, '');
-    for (const key in COLOR_MAP) { if (k.includes(key)) return COLOR_MAP[key]; }
-    return '#eee';
-}
-
-function updateProductImageOverlay() { /* Logic maintained */
-    /* ... (Mismo código de overlay que funciona bien) ... */
-    const images = document.querySelectorAll('.js-product-slide-img, .product-image-container img');
-    let target = null;
-    images.forEach(img => { if (img.offsetParent !== null && img.clientWidth > 100) target = img.parentElement; });
-    if (target) {
-        if (getComputedStyle(target).position === 'static') target.style.position = 'relative';
-        const old = target.querySelector('.custom-overlay-text');
-        if (old) old.remove();
-        const overlay = document.createElement('div');
-        overlay.className = 'custom-overlay-text';
-        overlay.innerText = activeText || "TU NOMBRE";
-        overlay.style.opacity = activeText ? '1' : '0.6';
-        target.appendChild(overlay);
+        // Actualizar estilos
+        overlay.innerText = state.text || (state.active ? "TU TEXTO" : "");
+        overlay.style.color = state.color;
+        overlay.style.fontFamily = state.font;
+        overlay.style.opacity = state.active ? '1' : '0'; // Ocultar si cerró panel
     }
 }
 
-function startImageWatch() { setInterval(() => updateProductImageOverlay(), 800); }
-function initTextFieldOnly() { /* ... */ }
+function hijackSubmit(form, btn, state) {
+    // Clonar para limpiar listeners
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSystem);
-else initSystem();
+    newBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        const originalText = newBtn.value || newBtn.innerText;
+        newBtn.disabled = true;
+        if (newBtn.tagName === 'INPUT') newBtn.value = "Procesando..."; else newBtn.innerText = "Procesando...";
+
+        const formData = new FormData(form);
+
+        // SOLO enviar personalización si el panel estaba abierto y activo
+        if (state.active && state.text) {
+            console.log("🎁 Enviando Personalización:", state);
+            const dataString = `${state.text} | Color: ${getColorName(state.color)} | Fuente: ${getFontName(state.font)}`;
+            formData.set('properties[Personalizacion]', dataString);
+        }
+
+        // Enviar AJAX
+        fetch(form.action || '/cart/add', {
+            method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(res => {
+                if (res.ok) window.location.href = '/cart';
+                else throw new Error("Error backend");
+            })
+            .catch(err => {
+                console.error("Fallback Submit", err);
+                // Si falla AJAX, inyectar input hidden y submit normal
+                if (state.active && state.text) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'properties[Personalizacion]';
+                    hidden.value = `${state.text} | Color: ${getColorName(state.color)}`;
+                    form.appendChild(hidden);
+                }
+                form.submit();
+            });
+    });
+}
+
+function getColorName(hex) {
+    const c = COLORS.find(x => x.hex === hex);
+    return c ? c.name : hex;
+}
+function getFontName(family) {
+    const f = FONTS.find(x => x.family === family);
+    return f ? f.name : "Standard";
+}
+
+// Iniciar
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initObserver);
+else initObserver();
