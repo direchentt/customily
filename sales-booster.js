@@ -6,8 +6,8 @@
 
     const CONFIG = {
         dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json',
-        // Backend local para crear cupones dinámicos (en producción, reemplazar con URL de Render/Railway)
-        backendUrl: 'http://localhost:3001',
+        // Backend en producción (Render)
+        backendUrl: 'https://salesbooster-hachedhe.onrender.com',
         cartEndpoint: '/comprar/',
         injectAfterSelectors: ['.js-product-form', '#product_form', '.js-addtocart', '.product-buy-container'],
     };
