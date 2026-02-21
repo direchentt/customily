@@ -8,7 +8,13 @@
     "threshold": 100000,
     "msgInitial": "Sumá {faltante} para tener ENVÍO GRATIS",
     "msgProgress": "Estás a {faltante} del ENVÍO GRATIS",
-    "msgSuccess": "¡Felicidades! Tenés ENVÍO GRATIS 🎉qq"
+    "msgSuccess": "¡Felicidades! Tenés ENVÍO GRATIS 🎉qq",
+    "placements": [
+      "minicart",
+      "pdp"
+    ],
+    "style": 2,
+    "color": "#000000"
   },
   "minicartUpsell": {
     "enabled": true,
@@ -113,6 +119,48 @@
       "discount": 10,
       "triggers": [],
       "products": []
+    }
+  ],
+  "smartOffers": [
+    {
+      "id": "offer_1771704168098",
+      "name": "Nueva Campaña de Upsell",
+      "triggers": [
+        "274632180"
+      ],
+      "offerProduct": {
+        "id": "274632277",
+        "name": "TABLE BRIK",
+        "price": "250000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/by-tray-table-white68da-6525b8b3478b4814f417490871411684-1024-1024.jpg",
+        "variant_id": "1226795210"
+      },
+      "title": "COMPLETÁ TU RUTINA:",
+      "placements": [
+        "minicart",
+        "pdp",
+        "home"
+      ]
+    },
+    {
+      "id": "offer_1771704180539",
+      "name": "Nueva Campaña de Upsell",
+      "triggers": [
+        "297461483"
+      ],
+      "offerProduct": {
+        "id": "295871879",
+        "name": "Boxers Cafeína 2.x",
+        "price": "230000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_05_22_scuffers_03-f291981abcabb8bd3d17710384408030-1024-1024.webp",
+        "variant_id": "1321250374"
+      },
+      "title": "COMPLETÁ TU RUTINA:",
+      "placements": [
+        "minicart",
+        "home",
+        "pdp"
+      ]
     }
   ]
 }

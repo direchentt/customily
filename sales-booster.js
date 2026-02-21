@@ -527,71 +527,66 @@
         setTimeout(() => tryApplyOnCart(15), 2500);
     }
 
-    // ─── MINICART UPSELL ───
-    function initMinicartUpsell(minicartConfig) {
-        if (!minicartConfig || !minicartConfig.products || !minicartConfig.products.length) return;
-
-        let product = minicartConfig.products[0];
-        if (typeof product === 'string') return; // Esperando objeto con datos
+    // ─── OFERTAS ESTRATÉGICAS (SMART OFFERS) ───
+    function initSmartOffers(offers) {
+        if (!offers || !offers.length) return;
 
         // CSS
-        if (!document.getElementById('hache-upsell-styles')) {
+        if (!document.getElementById('hache-offer-styles')) {
             const style = document.createElement('style');
-            style.id = 'hache-upsell-styles';
+            style.id = 'hache-offer-styles';
             style.innerHTML = `
-                .hache-custom-upsell { margin: 15px; padding: 15px; background: #fdfdfd; border-radius: 12px; border: 1px solid #ebebeb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-                .hache-upsell-title { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 12px; }
-                .hache-upsell-row { display: flex; align-items: center; gap: 12px; }
-                .hache-upsell-img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; }
-                .hache-upsell-info { flex: 1; min-width: 0; }
-                .hache-upsell-name { font-size: 13px; font-weight: 500; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                .hache-upsell-price { font-size: 13px; font-weight: 700; color: #333; margin-top: 2px; }
-                .hache-upsell-btn { background: #111; color: #fff; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-                .hache-upsell-btn:hover { background: #333; transform: scale(1.02); }
-                .hache-upsell-btn.adding { background: #aaa; cursor: wait; }
+                .hache-smart-offer { margin: 15px 0; padding: 15px; background: #fdfdfd; border-radius: 12px; border: 1px solid #ebebeb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+                .hache-smart-offer.in-minicart { margin: 15px; }
+                .hache-offer-title { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 12px; }
+                .hache-offer-row { display: flex; align-items: center; gap: 12px; }
+                .hache-offer-img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; }
+                .hache-offer-info { flex: 1; min-width: 0; }
+                .hache-offer-name { font-size: 13px; font-weight: 500; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .hache-offer-price { font-size: 13px; font-weight: 700; color: #333; margin-top: 2px; }
+                .hache-offer-btn { background: #111; color: #fff; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+                .hache-offer-btn:hover { background: #333; transform: scale(1.02); }
+                .hache-offer-btn.adding { background: #aaa; cursor: wait; }
             `;
             document.head.appendChild(style);
         }
 
-        const injectUpsell = () => {
-            const cartPanel = document.querySelector('.js-ajax-cart-panel, .js-ajax-cart-list, #modal-cart, .cart-sliding, #ajax-cart');
-            if (!cartPanel) return;
+        const injectOffer = (offer, context, containerEl) => {
+            const product = offer.offerProduct;
+            if (!product || !product.id) return;
 
-            // Ya está inyectado
-            if (document.querySelector('.hache-custom-upsell')) return;
+            const existing = document.getElementById('hache-offer-' + offer.id + '-' + context);
+            if (existing) return; // Ya inyectado en este contexto
 
-            // Evitar si el producto ya está siendo comprado (check HTML de carrito)
-            const cartHtml = cartPanel.innerHTML || '';
-            if (cartHtml.includes(product.id) || cartHtml.includes(product.name)) return;
+            // Verificar si el producto ya está en el HTML del carrito/contenedor para no ofrecerlo (Ej carrito)
+            if (containerEl.innerHTML && (containerEl.innerHTML.includes(product.id) || containerEl.innerHTML.includes(product.name))) return;
 
             const div = document.createElement('div');
-            div.className = 'hache-custom-upsell';
+            div.className = 'hache-smart-offer ' + (context === 'minicart' ? 'in-minicart' : '');
+            div.id = 'hache-offer-' + offer.id + '-' + context;
             div.innerHTML = `
-                <div class="hache-upsell-title">${minicartConfig.title || 'COMPLETÁ TU RUTINA:'}</div>
-                <div class="hache-upsell-row">
-                    <img src="${product.image}" class="hache-upsell-img" />
-                    <div class="hache-upsell-info">
-                        <div class="hache-upsell-name">${product.name}</div>
-                        <div class="hache-upsell-price">$${fmt(parsePrice(product.price))}</div>
+                <div class="hache-offer-title">${offer.title || 'COMPLETÁ TU RUTINA:'}</div>
+                <div class="hache-offer-row">
+                    <img src="${product.image}" class="hache-offer-img" />
+                    <div class="hache-offer-info">
+                        <div class="hache-offer-name">${product.name}</div>
+                        <div class="hache-offer-price">$${fmt(parsePrice(product.price))}</div>
                     </div>
-                    <button class="hache-upsell-btn" id="hache-upsell-add-btn">Agregar</button>
+                    <button class="hache-offer-btn" id="btn-offer-${offer.id}">Agregar</button>
                 </div>
             `;
 
-            // Insertamos preferiblemente antes del botón de Iniciar Compra o al final de la lista
-            const cartList = document.querySelector('.js-ajax-cart-list');
-            const submitBtn = document.querySelector('.js-ajax-cart-submit, [data-component="cart.checkout-button"]');
-
-            if (cartList && cartList.nextElementSibling) {
-                cartList.parentNode.insertBefore(div, cartList.nextElementSibling);
-            } else if (submitBtn && submitBtn.parentNode) {
-                submitBtn.parentNode.insertBefore(div, submitBtn);
-            } else {
-                cartPanel.appendChild(div);
+            if (context === 'minicart' || context === 'cart') {
+                const cartList = containerEl.querySelector('.js-ajax-cart-list');
+                const submitBtn = containerEl.querySelector('.js-ajax-cart-submit, [data-component="cart.checkout-button"]');
+                if (cartList && cartList.nextElementSibling) cartList.parentNode.insertBefore(div, cartList.nextElementSibling);
+                else if (submitBtn && submitBtn.parentNode) submitBtn.parentNode.insertBefore(div, submitBtn);
+                else containerEl.appendChild(div);
+            } else if (context === 'pdp') {
+                containerEl.parentNode.insertBefore(div, containerEl.nextSibling);
             }
 
-            // Click listener
-            const btn = div.querySelector('#hache-upsell-add-btn');
+            const btn = div.querySelector('#btn-offer-' + offer.id);
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 btn.classList.add('adding');
@@ -612,14 +607,143 @@
             });
         };
 
-        injectUpsell();
+        const processMinicart = () => {
+            const cartPanel = document.querySelector('.js-ajax-cart-panel, .js-ajax-cart-list, #modal-cart, .cart-sliding, #ajax-cart');
+            if (!cartPanel) return;
 
-        // MutObserver para inyectar cada vez que el minicart se abra o actualice
+            offers.forEach(offer => {
+                if (!offer.placements?.includes('minicart')) return;
+                // Revisar triggers (SI no hay gatillos -> se muestra siempre. SI hay, chequear si alguno está en el carrito)
+                let show = true;
+                if (offer.triggers && offer.triggers.length > 0) {
+                    show = false;
+                    const html = cartPanel.innerHTML;
+                    for (const t of offer.triggers) {
+                        if (html.includes(t)) { show = true; break; }
+                    }
+                }
+                if (show) injectOffer(offer, 'minicart', cartPanel);
+            });
+        };
+
+        const processPDP = () => {
+            const mainProduct = getMainProduct();
+            if (!mainProduct) return;
+            const container = document.querySelector('.js-product-form, #product_form, .js-addtocart, .product-buy-container');
+            if (!container) return;
+
+            offers.forEach(offer => {
+                if (!offer.placements?.includes('pdp')) return;
+                let show = true;
+                if (offer.triggers && offer.triggers.length > 0) {
+                    show = offer.triggers.includes(String(mainProduct.id));
+                }
+                if (show) injectOffer(offer, 'pdp', container);
+            });
+        };
+
+        processPDP();
+        processMinicart();
+
         const obs = new MutationObserver(() => {
             if (document.querySelector('#modal-cart.modal-show, #ajax-cart.active, .cart-sliding')) {
-                injectUpsell();
+                processMinicart();
             }
         });
+        obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+    }
+
+    // ─── BARRA DE ENVÍO GRATIS ───
+    function initShippingBar(configBar) {
+        if (!configBar || !configBar.enabled) return;
+
+        // CSS
+        if (!document.getElementById('hache-shipping-styles')) {
+            const style = document.createElement('style');
+            style.id = 'hache-shipping-styles';
+            // Variante 1, 2 o 3 (Simple progress)
+            const bgClass = configBar.style === 2 ? 'border-radius: 8px;' : (configBar.style === 3 ? 'border-radius: 20px;' : '');
+
+            style.innerHTML = `
+                .hache-sbar-wrap { margin: 15px 0; padding: 12px 15px; font-family: -apple-system, sans-serif; background: #fff; border: 1px solid #e5e5e5; display: flex; flex-direction: column; align-items: center; justify-content: center; ${bgClass} }
+                .hache-sbar-wrap.in-minicart { margin: 10px 15px; border-left: 0; border-right: 0;}
+                .hache-sbar-txt { font-size: 13px; font-weight: 500; color: #111; margin-bottom: 8px; text-align: center; }
+                .hache-sbar-txt b { font-weight: 700; color: ${configBar.color || '#000'}; }
+                .hache-sbar-track { width: 100%; height: 6px; background: #eee; border-radius: 10px; overflow: hidden; }
+                .hache-sbar-fill { height: 100%; background: ${configBar.color || '#000'}; transition: width 0.4s ease; }
+                .hache-sbar-success { color: #10b981; font-weight: 700; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const threshold = configBar.threshold || 100000;
+
+        const updateBar = async () => {
+            // Intenta leer LS.cart sino fetch (o HTML scrap como ultimo recurso)
+            let subtotal = 0;
+            try {
+                if (window.LS && window.LS.cart && window.LS.cart.subtotal) {
+                    subtotal = parsePrice(window.LS.cart.subtotal);
+                } else {
+                    const el = document.querySelector('.js-cart-subtotal, .js-ajax-cart-total');
+                    if (el) subtotal = parsePrice(el.innerText);
+                }
+            } catch (e) { }
+
+            let pct = Math.min((subtotal / threshold) * 100, 100);
+            let faltante = threshold - subtotal;
+            let msg = '';
+            let isSuccess = false;
+
+            if (subtotal === 0) {
+                msg = configBar.msgInitial || `Sumá $${fmt(faltante)} para envío gratis`;
+                msg = msg.replace('{faltante}', `<b>$${fmt(faltante)}</b>`);
+            } else if (subtotal < threshold) {
+                msg = configBar.msgProgress || `Estás a $${fmt(faltante)} del envío gratis`;
+                msg = msg.replace('{faltante}', `<b>$${fmt(faltante)}</b>`);
+            } else {
+                msg = `<span class="hache-sbar-success">${configBar.msgSuccess || '¡Tenés envío gratis!'}</span>`;
+                isSuccess = true;
+            }
+
+            // Inyectar en minicart
+            if (configBar.placements?.includes('minicart')) {
+                const cartPanel = document.querySelector('.js-ajax-cart-panel, .js-ajax-cart-list, #modal-cart, .cart-sliding');
+                if (cartPanel) {
+                    let bar = document.getElementById('hache-sbar-minicart');
+                    if (!bar) {
+                        bar = document.createElement('div');
+                        bar.id = 'hache-sbar-minicart';
+                        bar.className = 'hache-sbar-wrap in-minicart';
+                        bar.innerHTML = `<div class="hache-sbar-txt">${msg}</div><div class="hache-sbar-track"><div class="hache-sbar-fill" style="width: ${pct}%"></div></div>`;
+                        cartPanel.insertBefore(bar, cartPanel.firstChild);
+                    } else {
+                        bar.querySelector('.hache-sbar-txt').innerHTML = msg;
+                        bar.querySelector('.hache-sbar-fill').style.width = pct + '%';
+                    }
+                }
+            }
+
+            // Inyectar en PDP
+            if (configBar.placements?.includes('pdp')) {
+                const pdpContainer = document.querySelector('.js-product-form, #product_form, .product-buy-container');
+                if (pdpContainer) {
+                    let bar = document.getElementById('hache-sbar-pdp');
+                    if (!bar) {
+                        bar = document.createElement('div');
+                        bar.id = 'hache-sbar-pdp';
+                        bar.className = 'hache-sbar-wrap';
+                        bar.innerHTML = `<div class="hache-sbar-txt">${msg}</div><div class="hache-sbar-track"><div class="hache-sbar-fill" style="width: ${pct}%"></div></div>`;
+                        pdpContainer.insertBefore(bar, pdpContainer.firstChild);
+                    }
+                    // Aca en PDP quizas sumar el precio del producto actual al subtotal simulando el progreso
+                }
+            }
+        };
+
+        updateBar();
+
+        const obs = new MutationObserver(() => { updateBar(); });
         obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
     }
 
@@ -628,12 +752,17 @@
         const conf = await fetchConfig();
         if (!conf) return;
 
-        // 1. Iniciar Minicart Upsell
-        if (conf.minicartUpsell && conf.minicartUpsell.enabled) {
-            initMinicartUpsell(conf.minicartUpsell);
+        // 1. Iniciar Ofertas Estratégicas
+        if (conf.smartOffers && conf.smartOffers.length > 0) {
+            initSmartOffers(conf.smartOffers);
         }
 
-        // 2. Iniciar Bundles (Solo en página de producto)
+        // 2. Iniciar Barra de Envíos
+        if (conf.shippingBar && conf.shippingBar.enabled) {
+            initShippingBar(conf.shippingBar);
+        }
+
+        // 3. Iniciar Bundles (Solo en página de producto)
         const isProductPage = !!document.querySelector(
             'input[name="add_to_cart"], meta[property="product:retailer_item_id"]'
         );
@@ -641,7 +770,7 @@
             initBundles(conf.bundles);
         }
 
-        // 3. Flujo automático de Cupones (Cart page)
+        // 4. Flujo automático de Cupones (Cart page)
         handleCouponFlow();
     }
 
