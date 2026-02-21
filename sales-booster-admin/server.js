@@ -23,8 +23,9 @@ const PORT = process.env.PORT || 3001;
 // ─── MONGODB CONNECTION ───
 const MONGO_URI = 'mongodb+srv://hugonzalexone_db_user:iG9eBhau7Fa5sks6@customily.ogrptsb.mongodb.net/hache_suite?retryWrites=true&w=majority&appName=customily';
 
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('🟢 Conectado a MongoDB Atlas'))
+mongoose.connect(MONGO_URI, {
+    serverSelectionTimeoutMS: 5000,
+}).then(() => console.log('🟢 Conectado a MongoDB Atlas'))
     .catch(err => console.error('🔴 Error conectando a MongoDB:', err));
 
 // Definir Schema y Modelo para la configuración
