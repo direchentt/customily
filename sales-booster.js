@@ -19,13 +19,25 @@
     };
     const fmt = (n) => Math.floor(n).toLocaleString('es-AR');
 
-    // ─── MAIN ───
-    async function init() {
+    let GLOBAL_CONFIG = null;
+
+    async function fetchConfig() {
+        if (GLOBAL_CONFIG) return GLOBAL_CONFIG;
+        try {
+            const res = await fetch(CONFIG.dbUrl + '?t=' + Date.now());
+            GLOBAL_CONFIG = await res.json();
+            return GLOBAL_CONFIG;
+        } catch (e) {
+            console.error('[HacheSuite] Config Error:', e);
+            return null;
+        }
+    }
+
+    // ─── BUNDLES (COMBOS) MAIN ───
+    function initBundles(combos) {
+        if (!combos || !combos.length) return;
         const product = getMainProduct();
         if (!product) return;
-
-        const combos = await fetchCombos();
-        if (!combos || !combos.length) return;
 
         // Encontrar el combo cuyo trigger contiene el producto actual
         const combo = combos.find(c =>
@@ -66,17 +78,7 @@
         };
     }
 
-    // ─── FETCH COMBOS (NOW FROM HACHE SUITE CONFIG) ───
-    async function fetchCombos() {
-        try {
-            const res = await fetch(CONFIG.dbUrl + '?t=' + Date.now());
-            const configData = await res.json();
-            return Array.isArray(configData?.bundles) ? configData.bundles : [];
-        } catch (e) {
-            console.error('[SalesBooster] Config Error:', e);
-            return [];
-        }
-    }
+
 
     // ─── RENDER WIDGET ───
     function renderWidget(main, combo) {
@@ -525,18 +527,122 @@
         setTimeout(() => tryApplyOnCart(15), 2500);
     }
 
-    // ─── BOOT ───
-    function boot() {
-        // Correr en TODAS las páginas: widget en PDPs + cupón en checkout
-        handleCouponFlow();
+    // ─── MINICART UPSELL ───
+    function initMinicartUpsell(minicartConfig) {
+        if (!minicartConfig || !minicartConfig.products || !minicartConfig.products.length) return;
 
-        // Widget de combo solo en páginas de producto
+        let product = minicartConfig.products[0];
+        if (typeof product === 'string') return; // Esperando objeto con datos
+
+        // CSS
+        if (!document.getElementById('hache-upsell-styles')) {
+            const style = document.createElement('style');
+            style.id = 'hache-upsell-styles';
+            style.innerHTML = `
+                .hache-custom-upsell { margin: 15px; padding: 15px; background: #fdfdfd; border-radius: 12px; border: 1px solid #ebebeb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+                .hache-upsell-title { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 12px; }
+                .hache-upsell-row { display: flex; align-items: center; gap: 12px; }
+                .hache-upsell-img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; }
+                .hache-upsell-info { flex: 1; min-width: 0; }
+                .hache-upsell-name { font-size: 13px; font-weight: 500; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .hache-upsell-price { font-size: 13px; font-weight: 700; color: #333; margin-top: 2px; }
+                .hache-upsell-btn { background: #111; color: #fff; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+                .hache-upsell-btn:hover { background: #333; transform: scale(1.02); }
+                .hache-upsell-btn.adding { background: #aaa; cursor: wait; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const injectUpsell = () => {
+            const cartPanel = document.querySelector('.js-ajax-cart-panel, .js-ajax-cart-list, #modal-cart, .cart-sliding, #ajax-cart');
+            if (!cartPanel) return;
+
+            // Ya está inyectado
+            if (document.querySelector('.hache-custom-upsell')) return;
+
+            // Evitar si el producto ya está siendo comprado (check HTML de carrito)
+            const cartHtml = cartPanel.innerHTML || '';
+            if (cartHtml.includes(product.id) || cartHtml.includes(product.name)) return;
+
+            const div = document.createElement('div');
+            div.className = 'hache-custom-upsell';
+            div.innerHTML = `
+                <div class="hache-upsell-title">${minicartConfig.title || 'COMPLETÁ TU RUTINA:'}</div>
+                <div class="hache-upsell-row">
+                    <img src="${product.image}" class="hache-upsell-img" />
+                    <div class="hache-upsell-info">
+                        <div class="hache-upsell-name">${product.name}</div>
+                        <div class="hache-upsell-price">$${fmt(parsePrice(product.price))}</div>
+                    </div>
+                    <button class="hache-upsell-btn" id="hache-upsell-add-btn">Agregar</button>
+                </div>
+            `;
+
+            // Insertamos preferiblemente antes del botón de Iniciar Compra o al final de la lista
+            const cartList = document.querySelector('.js-ajax-cart-list');
+            const submitBtn = document.querySelector('.js-ajax-cart-submit, [data-component="cart.checkout-button"]');
+
+            if (cartList && cartList.nextElementSibling) {
+                cartList.parentNode.insertBefore(div, cartList.nextElementSibling);
+            } else if (submitBtn && submitBtn.parentNode) {
+                submitBtn.parentNode.insertBefore(div, submitBtn);
+            } else {
+                cartPanel.appendChild(div);
+            }
+
+            // Click listener
+            const btn = div.querySelector('#hache-upsell-add-btn');
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                btn.classList.add('adding');
+                btn.innerText = 'Agregando...';
+
+                try {
+                    if (window.LS && window.LS.addToCart) {
+                        window.LS.addToCart(product.id, product.variant_id || product.id, 1);
+                    } else {
+                        const params = new URLSearchParams({ add_to_cart: product.id, quantity: 1 });
+                        if (product.variant_id) params.append('variant_id', product.variant_id);
+                        await fetch('/comprar/', { method: 'POST', body: params });
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    window.location.reload();
+                }
+            });
+        };
+
+        injectUpsell();
+
+        // MutObserver para inyectar cada vez que el minicart se abra o actualice
+        const obs = new MutationObserver(() => {
+            if (document.querySelector('#modal-cart.modal-show, #ajax-cart.active, .cart-sliding')) {
+                injectUpsell();
+            }
+        });
+        obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+    }
+
+    // ─── BOOT ───
+    async function boot() {
+        const conf = await fetchConfig();
+        if (!conf) return;
+
+        // 1. Iniciar Minicart Upsell
+        if (conf.minicartUpsell && conf.minicartUpsell.enabled) {
+            initMinicartUpsell(conf.minicartUpsell);
+        }
+
+        // 2. Iniciar Bundles (Solo en página de producto)
         const isProductPage = !!document.querySelector(
             'input[name="add_to_cart"], meta[property="product:retailer_item_id"]'
         );
-        if (isProductPage) {
-            init();
+        if (isProductPage && conf.bundles) {
+            initBundles(conf.bundles);
         }
+
+        // 3. Flujo automático de Cupones (Cart page)
+        handleCouponFlow();
     }
 
     if (document.readyState === 'loading') {
