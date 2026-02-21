@@ -515,20 +515,24 @@
                     }
                 }, 400);
 
-            } else if (input && input.offsetParent === null) {
-                // Input existe pero está oculto — hay que abrir el panel de cupón primero
-                const revealBtn = document.querySelector(
-                    '[data-testid="link-coupon-reveal"], .btn-link'
+            } else {
+                // Input no existe o está oculto → buscar y clickear el link "Agregar cupón de descuento"
+                // TN lo pone como un div.btn.btn-link[role=button] con el texto "cupón"
+                const allBtns = [...document.querySelectorAll('[role="button"], .btn-link, button, a')];
+                const revealBtn = allBtns.find(el =>
+                    el.textContent.toLowerCase().includes('cup') &&
+                    (el.textContent.toLowerCase().includes('agregar') || el.textContent.toLowerCase().includes('descuento'))
                 );
+
                 if (revealBtn) {
                     revealBtn.click();
-                    console.log('[SalesBooster] Abriendo panel de cupón...');
+                    console.log('[SalesBooster] Clic en link para revelar cupón');
+                    // Después del clic, esperar más tiempo para que aparezca el input
+                    setTimeout(() => tryApplyCoupon(attempts - 1), 1000);
+                } else {
+                    // El checkout aún no cargó — reintentar
+                    setTimeout(() => tryApplyCoupon(attempts - 1), 800);
                 }
-                setTimeout(() => tryApplyCoupon(attempts - 1), 600);
-
-            } else {
-                // Aún no cargó el checkout — reintentar
-                setTimeout(() => tryApplyCoupon(attempts - 1), 800);
             }
         };
 
