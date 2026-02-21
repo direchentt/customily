@@ -5,7 +5,7 @@
     'use strict';
 
     const CONFIG = {
-        dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/combos.json',
+        dbUrl: 'https://raw.githubusercontent.com/direchentt/customily/main/hache-config.json',
         // Backend en producción (Render)
         backendUrl: 'https://salesbooster-hachedhe.onrender.com',
         cartEndpoint: '/comprar/',
@@ -66,14 +66,14 @@
         };
     }
 
-    // ─── FETCH COMBOS ───
+    // ─── FETCH COMBOS (NOW FROM HACHE SUITE CONFIG) ───
     async function fetchCombos() {
         try {
             const res = await fetch(CONFIG.dbUrl + '?t=' + Date.now());
-            const data = await res.json();
-            return Array.isArray(data) ? data : [];
+            const configData = await res.json();
+            return Array.isArray(configData?.bundles) ? configData.bundles : [];
         } catch (e) {
-            console.error('[SalesBooster] DB Error:', e);
+            console.error('[SalesBooster] Config Error:', e);
             return [];
         }
     }
