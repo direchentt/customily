@@ -16,7 +16,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const DB_PATH = path.join(__dirname, '../combos.json');
+const CONFIG_PATH = path.join(__dirname, '../hache-config.json');
 const PORT = process.env.PORT || 3001;
 
 // ─── TIENDANUBE API CONFIG ───
@@ -112,29 +112,28 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// 2. LEER COMBOS (V8: Array format)
-app.get('/api/combos', (req, res) => {
-    if (fs.existsSync(DB_PATH)) {
+// 2. LEER CONFIG COMPLETA DE HACHE SUITE
+app.get('/api/config', (req, res) => {
+    if (fs.existsSync(CONFIG_PATH)) {
         try {
-            const data = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-            // Normalizar: si es objeto viejo (V2/V3), devolver array vacío
-            res.json(Array.isArray(data) ? data : []);
+            const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+            res.json(config);
         } catch (e) {
-            res.json([]);
+            res.status(500).json({ error: "Error al leer config" });
         }
     } else {
-        res.json([]);
+        res.status(404).json({ error: "Config no encontrada" });
     }
 });
 
-// 3. GUARDAR COMBOS
-app.post('/api/combos', (req, res) => {
+// 3. GUARDAR CONFIG COMPLETA
+app.post('/api/config', (req, res) => {
     try {
-        fs.writeFileSync(DB_PATH, JSON.stringify(req.body, null, 2));
-        console.log("💾 Combos actualizados!");
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(req.body, null, 2));
+        console.log("💾 Hache Suite Config actualizada!");
         res.json({ success: true });
     } catch (error) {
-        res.status(500).json({ error: "Error al guardar" });
+        res.status(500).json({ error: "Error al guardar config" });
     }
 });
 
