@@ -457,58 +457,95 @@
         document.head.appendChild(style);
     }
 
-    // ─── AUTO-APPLY COUPON ON CHECKOUT PAGE ───
-    // Si el usuario llega a /comprar/?coupon=XXXX, aplica el cupón automáticamente
-    function autoApplyCoupon() {
+    // ─── AUTO-APPLY COUPON ───
+    // Estrategia de 2 pasos:
+    // 1) En /comprar/?coupon=XXX → guardar en sessionStorage
+    // 2) En el checkout (Entrega) → leer sessionStorage y auto-aplicar en el input nativo
+    function handleCouponFlow() {
+        const path = window.location.pathname;
         const params = new URLSearchParams(window.location.search);
-        const coupon = params.get('coupon');
+        const urlCoupon = params.get('coupon');
+
+        // PASO 1: Guardar cupón si viene en la URL de /comprar/
+        if (urlCoupon) {
+            sessionStorage.setItem('sb_coupon', urlCoupon);
+            console.log('[SalesBooster] Cupón guardado en session:', urlCoupon);
+        }
+
+        // PASO 2: Aplicar en el checkout (la URL del checkout de TN varía pero siempre
+        // es diferente: tiene /checkout, /entrega, o un hash raro. Lo detectamos por
+        // la presencia del input nativo de TN)
+        const coupon = sessionStorage.getItem('sb_coupon');
         if (!coupon) return;
 
-        console.log('[SalesBooster] Cupón detectado en URL:', coupon);
+        // Función para inyectar valor en input de React (TN usa React en el checkout)
+        const setNativeValue = (el, value) => {
+            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+            nativeSetter?.call(el, value);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        };
 
-        // Intentar aplicar inmediatamente y también con delay (el checkout de TN carga dinámicamente)
-        const tryApply = (attempts) => {
-            if (attempts <= 0) return;
+        const tryApplyCoupon = (attempts) => {
+            if (attempts <= 0) {
+                console.warn('[SalesBooster] No se pudo encontrar el input de cupón tras múltiples intentos');
+                return;
+            }
 
-            // Selector del input de cupón en el checkout de Tiendanube
+            // Selectores exactos confirmados por inspección del DOM de TN
             const input = document.querySelector(
-                'input[name="coupon"], input[id*="coupon"], input[placeholder*="descuento"], input[placeholder*="cupón"], input[placeholder*="cupon"]'
+                'input#coupon, input[test-id="coupon"], input[name="coupon"]'
             );
 
-            if (input) {
-                // Simular que el usuario escribe el código
-                input.value = coupon;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
+            if (input && input.offsetParent !== null) {
+                // Input está visible — llenarlo
+                setNativeValue(input, coupon);
+                console.log('[SalesBooster] Input de cupón llenado:', coupon);
 
-                // Buscar y clickear el botón de aplicar cupón
+                // Hacer clic en el botón de aplicar
                 setTimeout(() => {
-                    const btn = input.closest('form')?.querySelector('button[type="submit"], button')
-                        || document.querySelector('button[data-coupon], .js-coupon-btn, [class*="coupon"] button');
-                    if (btn) {
-                        btn.click();
-                        console.log('[SalesBooster] Cupón aplicado:', coupon);
-                    } else {
-                        input.form?.submit?.();
+                    const applyBtn = document.querySelector(
+                        'button[test-id="apply-coupon-btn"], [data-testid="apply-coupon-btn"]'
+                    ) || input.closest('div, form')?.querySelector('button');
+
+                    if (applyBtn) {
+                        applyBtn.click();
+                        console.log('[SalesBooster] Cupón enviado al checkout:', coupon);
+                        sessionStorage.removeItem('sb_coupon'); // limpiar después de aplicar
                     }
-                }, 300);
+                }, 400);
+
+            } else if (input && input.offsetParent === null) {
+                // Input existe pero está oculto — hay que abrir el panel de cupón primero
+                const revealBtn = document.querySelector(
+                    '[data-testid="link-coupon-reveal"], .btn-link'
+                );
+                if (revealBtn) {
+                    revealBtn.click();
+                    console.log('[SalesBooster] Abriendo panel de cupón...');
+                }
+                setTimeout(() => tryApplyCoupon(attempts - 1), 600);
+
             } else {
-                // El checkout no cargó aún, reintentar
-                setTimeout(() => tryApply(attempts - 1), 800);
+                // Aún no cargó el checkout — reintentar
+                setTimeout(() => tryApplyCoupon(attempts - 1), 800);
             }
         };
 
-        // Esperar a que el checkout cargue y aplicar
-        setTimeout(() => tryApply(8), 1500);
+        // Esperar a que React hidrate el checkout y luego aplicar
+        setTimeout(() => tryApplyCoupon(12), 2000);
     }
 
     // ─── BOOT ───
     function boot() {
-        // Si estamos en el checkout (/comprar/) intentar auto-aplicar cupón
-        if (window.location.pathname.includes('/comprar')) {
-            autoApplyCoupon();
-        } else {
-            // Si estamos en una página de producto, mostrar el widget de combo
+        // Correr en TODAS las páginas: widget en PDPs + cupón en checkout
+        handleCouponFlow();
+
+        // Widget de combo solo en páginas de producto
+        const isProductPage = !!document.querySelector(
+            'input[name="add_to_cart"], meta[property="product:retailer_item_id"]'
+        );
+        if (isProductPage) {
             init();
         }
     }
