@@ -457,28 +457,18 @@
         document.head.appendChild(style);
     }
 
-    // ─── AUTO-APPLY COUPON ───
-    // Estrategia de 2 pasos:
-    // 1) En /comprar/?coupon=XXX → guardar en sessionStorage
-    // 2) En el checkout (Entrega) → leer sessionStorage y auto-aplicar en el input nativo
+    // ─── AUTO-APPLY COUPON EN EL CARRITO (/comprar/) ───
+    // Nuestro script NO corre en /checkout/v3/ (TN lo bloquea).
+    // Pero SÍ corre en /comprar/. Aplicamos el cupón ahí antes
+    // de que el usuario haga clic en "Iniciar Compra".
     function handleCouponFlow() {
-        const path = window.location.pathname;
         const params = new URLSearchParams(window.location.search);
-        const urlCoupon = params.get('coupon');
-
-        // PASO 1: Guardar cupón si viene en la URL de /comprar/
-        if (urlCoupon) {
-            sessionStorage.setItem('sb_coupon', urlCoupon);
-            console.log('[SalesBooster] Cupón guardado en session:', urlCoupon);
-        }
-
-        // PASO 2: Aplicar en el checkout (la URL del checkout de TN varía pero siempre
-        // es diferente: tiene /checkout, /entrega, o un hash raro. Lo detectamos por
-        // la presencia del input nativo de TN)
-        const coupon = sessionStorage.getItem('sb_coupon');
+        const coupon = params.get('coupon');
         if (!coupon) return;
 
-        // Función para inyectar valor en input de React (TN usa React en el checkout)
+        console.log('[SalesBooster] Cupón detectado, aplicando en carrito:', coupon);
+
+        // Función para inyectar valor en inputs de React (TN usa un SPA)
         const setNativeValue = (el, value) => {
             const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
             nativeSetter?.call(el, value);
@@ -486,58 +476,53 @@
             el.dispatchEvent(new Event('change', { bubbles: true }));
         };
 
-        const tryApplyCoupon = (attempts) => {
+        const tryApplyOnCart = (attempts) => {
             if (attempts <= 0) {
-                console.warn('[SalesBooster] No se pudo encontrar el input de cupón tras múltiples intentos');
+                console.warn('[SalesBooster] No se pudo aplicar el cupón en el carrito');
                 return;
             }
 
-            // Selectores exactos confirmados por inspección del DOM de TN
-            const input = document.querySelector(
-                'input#coupon, input[test-id="coupon"], input[name="coupon"]'
-            );
+            // 1. Buscar el input de cupón (si ya está visible)
+            const input = document.querySelector('input#coupon, input[test-id="coupon"], input[name="coupon"]');
 
-            if (input && input.offsetParent !== null) {
-                // Input está visible — llenarlo
+            if (input) {
+                // Input visible → llenarlo y enviar
                 setNativeValue(input, coupon);
-                console.log('[SalesBooster] Input de cupón llenado:', coupon);
-
-                // Hacer clic en el botón de aplicar
+                console.log('[SalesBooster] Input encontrado, llenando:', coupon);
                 setTimeout(() => {
-                    const applyBtn = document.querySelector(
-                        'button[test-id="apply-coupon-btn"], [data-testid="apply-coupon-btn"]'
-                    ) || input.closest('div, form')?.querySelector('button');
-
+                    const applyBtn = document.querySelector('button[test-id="apply-coupon-btn"]')
+                        || input.closest('div, form')?.querySelector('button');
                     if (applyBtn) {
                         applyBtn.click();
-                        console.log('[SalesBooster] Cupón enviado al checkout:', coupon);
-                        sessionStorage.removeItem('sb_coupon'); // limpiar después de aplicar
+                        console.log('[SalesBooster] ✅ Cupón aplicado en carrito:', coupon);
                     }
                 }, 400);
+                return;
+            }
 
+            // 2. Input no visible → buscar el link que lo revela y hacer clic
+            const allElements = [...document.querySelectorAll('*')];
+            const revealLink = allElements.find(el => {
+                const txt = el.textContent?.trim().toLowerCase();
+                return (txt === 'agregar cupón de descuento' || txt === 'agregar cupon de descuento')
+                    && el.children.length === 0; // nodo hoja de texto exacto
+            }) || allElements.find(el => {
+                const txt = el.textContent?.trim().toLowerCase();
+                return txt?.includes('cupón') && txt?.includes('agregar');
+            });
+
+            if (revealLink) {
+                revealLink.click();
+                console.log('[SalesBooster] Clic en link de cupón para revelar input');
+                setTimeout(() => tryApplyOnCart(attempts - 1), 1000);
             } else {
-                // Input no existe o está oculto → buscar y clickear el link "Agregar cupón de descuento"
-                // TN lo pone como un div.btn.btn-link[role=button] con el texto "cupón"
-                const allBtns = [...document.querySelectorAll('[role="button"], .btn-link, button, a')];
-                const revealBtn = allBtns.find(el =>
-                    el.textContent.toLowerCase().includes('cup') &&
-                    (el.textContent.toLowerCase().includes('agregar') || el.textContent.toLowerCase().includes('descuento'))
-                );
-
-                if (revealBtn) {
-                    revealBtn.click();
-                    console.log('[SalesBooster] Clic en link para revelar cupón');
-                    // Después del clic, esperar más tiempo para que aparezca el input
-                    setTimeout(() => tryApplyCoupon(attempts - 1), 1000);
-                } else {
-                    // El checkout aún no cargó — reintentar
-                    setTimeout(() => tryApplyCoupon(attempts - 1), 800);
-                }
+                // El carrito todavía no cargó → reintentar
+                setTimeout(() => tryApplyOnCart(attempts - 1), 700);
             }
         };
 
-        // Esperar a que React hidrate el checkout y luego aplicar
-        setTimeout(() => tryApplyCoupon(12), 2000);
+        // Esperar a que el SPA del carrito cargue completamente
+        setTimeout(() => tryApplyOnCart(15), 2500);
     }
 
     // ─── BOOT ───
