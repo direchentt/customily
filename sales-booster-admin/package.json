@@ -16,6 +16,7 @@
     "express": "^5.2.1",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.290.0",
+    "mongoose": "^9.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwind-merge": "^3.5.0"

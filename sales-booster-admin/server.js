@@ -4,6 +4,8 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -16,8 +18,22 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const CONFIG_PATH = path.join(__dirname, '../hache-config.json');
 const PORT = process.env.PORT || 3001;
+
+// ─── MONGODB CONNECTION ───
+const MONGO_URI = 'mongodb+srv://hugonzalexone_db_user:iG9eBhau7Fa5sks6@customily.ogrptsb.mongodb.net/hache_suite?retryWrites=true&w=majority&appName=customily';
+
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('🟢 Conectado a MongoDB Atlas'))
+    .catch(err => console.error('🔴 Error conectando a MongoDB:', err));
+
+// Definir Schema y Modelo para la configuración
+const configSchema = new mongoose.Schema({
+    id: { type: String, default: 'main' },
+    data: { type: mongoose.Schema.Types.Mixed }
+});
+
+const ConfigModel = mongoose.model('Config', configSchema);
 
 // ─── TIENDANUBE API CONFIG ───
 const TN_STORE_ID = '6325197';
@@ -112,28 +128,43 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// 2. LEER CONFIG COMPLETA DE HACHE SUITE
-app.get('/api/config', (req, res) => {
-    if (fs.existsSync(CONFIG_PATH)) {
-        try {
-            const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
-            res.json(config);
-        } catch (e) {
-            res.status(500).json({ error: "Error al leer config" });
+// 2. LEER CONFIG COMPLETA DE HACHE SUITE (MongoDB)
+app.get('/api/config', async (req, res) => {
+    try {
+        let doc = await ConfigModel.findOne({ id: 'main' });
+
+        if (!doc) {
+            // Si la BD está vacía, intentamos leer el JSON local y guardarlo como estado inicial (Seed)
+            const CONFIG_PATH = path.join(__dirname, '../hache-config.json');
+            let initialData = {};
+            if (fs.existsSync(CONFIG_PATH)) {
+                initialData = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+            }
+            doc = new ConfigModel({ id: 'main', data: initialData });
+            await doc.save();
+            console.log("🌱 Base de datos inicializada desde archivo local.");
         }
-    } else {
-        res.status(404).json({ error: "Config no encontrada" });
+        res.json(doc.data);
+    } catch (error) {
+        console.error("❌ Error leyendo Mongo:", error);
+        res.status(500).json({ error: "Error al leer config de BD" });
     }
 });
 
-// 3. GUARDAR CONFIG COMPLETA
-app.post('/api/config', (req, res) => {
+// 3. GUARDAR CONFIG COMPLETA (MongoDB)
+app.post('/api/config', async (req, res) => {
     try {
-        fs.writeFileSync(CONFIG_PATH, JSON.stringify(req.body, null, 2));
-        console.log("💾 Hache Suite Config actualizada!");
+        // Actualizar o crear si no existe
+        await ConfigModel.findOneAndUpdate(
+            { id: 'main' },
+            { data: req.body },
+            { upsert: true, new: true }
+        );
+        console.log("💾 Hache Suite Config actualizada en MongoDB!");
         res.json({ success: true });
     } catch (error) {
-        res.status(500).json({ error: "Error al guardar config" });
+        console.error("❌ Error guardando Mongo:", error);
+        res.status(500).json({ error: "Error al guardar config en BD" });
     }
 });
 

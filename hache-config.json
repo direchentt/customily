@@ -8,12 +8,12 @@
     "threshold": 100000,
     "msgInitial": "Sumá {faltante} para tener ENVÍO GRATIS",
     "msgProgress": "Estás a {faltante} del ENVÍO GRATIS",
-    "msgSuccess": "¡Felicidades! Tenés ENVÍO GRATIS 🎉qq",
+    "msgSuccess": "¡Felicidades! Tenés ENVÍO GRATIS 🎉",
     "placements": [
       "minicart",
       "pdp"
     ],
-    "style": 2,
+    "style": 3,
     "color": "#000000"
   },
   "minicartUpsell": {
@@ -126,7 +126,8 @@
       "id": "offer_1771704168098",
       "name": "Nueva Campaña de Upsell",
       "triggers": [
-        "274632180"
+        "274632180",
+        "274632277"
       ],
       "offerProduct": {
         "id": "274632277",
