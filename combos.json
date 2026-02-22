@@ -1,0 +1,69 @@
+[
+  {
+    "id": "combo_1771625126042",
+    "label": "Pack case PRO",
+    "badge": "",
+    "coupon": "",
+    "discount": 20,
+    "triggers": [
+      "297465045"
+    ],
+    "products": [
+      {
+        "id": "297463683",
+        "name": "Smash Charm",
+        "price": "320000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-1024-1024.webp"
+      }
+    ]
+  },
+  {
+    "id": "combo_1771625145827",
+    "label": "Pack Chemical Wallet",
+    "badge": "",
+    "coupon": "",
+    "discount": 10,
+    "triggers": [
+      "295871912",
+      "295871908"
+    ],
+    "products": [
+      {
+        "id": "295871903",
+        "name": "Key Chain",
+        "price": "190000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/sneakerkeychain_sem50_1-8c97d25ff26de8a32317710379394936-1024-1024.webp"
+      },
+      {
+        "id": "297463683",
+        "name": "Smash Charm",
+        "price": "320000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-1024-1024.webp"
+      }
+    ]
+  },
+  {
+    "id": "combo_1771625218558",
+    "label": "Pack Bag PHA",
+    "badge": "",
+    "coupon": "",
+    "discount": 10,
+    "triggers": [
+      "295871894"
+    ],
+    "products": [
+      {
+        "id": "295871885",
+        "name": "Boxers Cerami 2.x",
+        "price": "230000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/pack1backdrop12-3965e2a0334acd764217710384773120-1024-1024.webp"
+      },
+      {
+        "id": "295871879",
+        "name": "Boxers Cafeína 2.x",
+        "price": "230000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_05_22_scuffers_03-f291981abcabb8bd3d17710384408030-1024-1024.webp"
+      }
+    ]
+  }
+]

@@ -1,0 +1,167 @@
+{
+  "general": {
+    "storeId": "6325197",
+    "theme": "dark"
+  },
+  "shippingBar": {
+    "enabled": true,
+    "threshold": 100000,
+    "msgInitial": "Sumá {faltante} para tener ENVÍO GRATIS",
+    "msgProgress": "Estás a {faltante} del ENVÍO GRATIS",
+    "msgSuccess": "¡Felicidades! Tenés ENVÍO GRATIS 🎉",
+    "placements": [
+      "minicart",
+      "pdp"
+    ],
+    "style": 3,
+    "color": "#000000"
+  },
+  "minicartUpsell": {
+    "enabled": true,
+    "title": "⚡ Aprovechá y sumá esto",
+    "products": [
+      "274632277"
+    ],
+    "discount": 10
+  },
+  "whatsappRecovery": {
+    "enabled": false,
+    "delayMinutes": 30,
+    "template": "Hola {nombre} 👋, dejaste algo en tu carrito de Hache. ¿Querés terminar la compra? Te regalamos un 10% OFF usando el código RETOMA10 acá: {link}"
+  },
+  "bundles": [
+    {
+      "id": "combo_1771625126042",
+      "label": "Pack case PRO",
+      "badge": "",
+      "coupon": "",
+      "discount": 20,
+      "triggers": [
+        "297465045",
+        "274632180",
+        "274632277"
+      ],
+      "products": [
+        {
+          "id": "297463683",
+          "name": "Smash Charm",
+          "price": "320000",
+          "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-1024-1024.webp"
+        },
+        {
+          "id": "295871873",
+          "name": "Bag PH",
+          "price": "350000",
+          "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_01_31_scuffers00806_97329db5-f57c-42be-8d5e-6590eafbba55-62e5e73de1287ae16b17710385893826-1024-1024.webp",
+          "variant_id": "1321250362"
+        }
+      ]
+    },
+    {
+      "id": "combo_1771625145827",
+      "label": "Pack Chemical Wallet",
+      "badge": "",
+      "coupon": "",
+      "discount": 10,
+      "triggers": [
+        "295871912",
+        "295871908"
+      ],
+      "products": [
+        {
+          "id": "295871903",
+          "name": "Key Chain",
+          "price": "190000",
+          "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/sneakerkeychain_sem50_1-8c97d25ff26de8a32317710379394936-1024-1024.webp"
+        },
+        {
+          "id": "297463683",
+          "name": "Smash Charm",
+          "price": "320000",
+          "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/lava_ag_bracelet_sem_45_1-63129c4061c3933e1117709460416550-1024-1024.webp"
+        }
+      ]
+    },
+    {
+      "id": "combo_1771625218558",
+      "label": "Pack Bag PHA",
+      "badge": "",
+      "coupon": "",
+      "discount": 10,
+      "triggers": [
+        "295871894"
+      ],
+      "products": [
+        {
+          "id": "295871885",
+          "name": "Boxers Cerami 2.x",
+          "price": "230000",
+          "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/pack1backdrop12-3965e2a0334acd764217710384773120-1024-1024.webp"
+        },
+        {
+          "id": "295871879",
+          "name": "Boxers Cafeína 2.x",
+          "price": "230000",
+          "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_05_22_scuffers_03-f291981abcabb8bd3d17710384408030-1024-1024.webp"
+        }
+      ]
+    },
+    {
+      "id": "combo_1771702175676",
+      "label": "Nuevo Bundle",
+      "discount": 10,
+      "triggers": [],
+      "products": []
+    },
+    {
+      "id": "combo_1771702177159",
+      "label": "Nuevo Bundle",
+      "discount": 10,
+      "triggers": [],
+      "products": []
+    }
+  ],
+  "smartOffers": [
+    {
+      "id": "offer_1771704168098",
+      "name": "Nueva Campaña de Upsell",
+      "triggers": [
+        "274632180",
+        "274632277"
+      ],
+      "offerProduct": {
+        "id": "274632277",
+        "name": "TABLE BRIK",
+        "price": "250000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/by-tray-table-white68da-6525b8b3478b4814f417490871411684-1024-1024.jpg",
+        "variant_id": "1226795210"
+      },
+      "title": "COMPLETÁ TU RUTINA:",
+      "placements": [
+        "minicart",
+        "pdp",
+        "home"
+      ]
+    },
+    {
+      "id": "offer_1771704180539",
+      "name": "Nueva Campaña de Upsell",
+      "triggers": [
+        "297461483"
+      ],
+      "offerProduct": {
+        "id": "295871879",
+        "name": "Boxers Cafeína 2.x",
+        "price": "230000",
+        "image": "https://dcdn-us.mitiendanube.com/stores/006/325/197/products/2025_05_22_scuffers_03-f291981abcabb8bd3d17710384408030-1024-1024.webp",
+        "variant_id": "1321250374"
+      },
+      "title": "COMPLETÁ TU RUTINA:",
+      "placements": [
+        "minicart",
+        "home",
+        "pdp"
+      ]
+    }
+  ]
+}
