@@ -160,67 +160,85 @@
         const cart = await HacheCart.get();
         CURRENT_STATE.cart = cart;
 
-        const container = document.querySelector('.hache-injection-point');
-        if (container) container.remove(); // Cleanup
+        document.querySelectorAll('.hache-experience-v4').forEach(e => e.remove());
 
-        // Evaluation Logic (V4 Simple Match)
-        const candidates = CURRENT_STATE.config.filter(camp => {
-            if (camp.status !== 'active') return false;
+        const config = CURRENT_STATE.config;
+        if (!config) return;
 
-            const cartTotal = cart.total_price / 100;
-            const metTotal = cartTotal >= (camp.logic.conditions.minTotal || 0);
+        const productId = window.LS?.product?.id ? String(window.LS.product.id) : null;
+        let rendered = false;
 
-            // Basic trigger match
-            let metTriggers = true;
-            if (camp.logic.conditions.triggers?.length > 0) {
-                metTriggers = camp.logic.conditions.triggers.some(t =>
-                    cart.items.some(i => String(i.product_id) === String(t.id))
-                );
+        // 1. Check Bundles (PDP)
+        if (config.modules?.bundlesEnabled !== false && config.bundles && config.bundles.length > 0) {
+            const activeBundle = config.bundles.find(b => productId && b.triggers && b.triggers.includes(productId));
+            if (activeBundle) {
+                renderBundle(activeBundle);
+                rendered = true;
             }
+        }
 
-            return camp.logic.conditions.logic === 'OR' ? (metTotal || metTriggers) : (metTotal && metTriggers);
-        }).sort((a, b) => b.logic.priority - a.logic.priority);
+        // 2. Check Smart Offers (Cart / PDP)
+        if (!rendered && config.modules?.offersEnabled !== false && config.smartOffers && config.smartOffers.length > 0) {
+            const cartTotal = cart.total_price / 100;
+            // Also check if any trigger is in cart or active PDP
+            const activeOffer = config.smartOffers.find(offer => {
+                const metTotal = cartTotal >= (offer.cartMinValue || 0);
+                let metTriggers = true;
+                if (offer.triggers && offer.triggers.length > 0) {
+                    const inCart = cart.items.some(i => offer.triggers.includes(String(i.product_id)));
+                    const inPDP = productId && offer.triggers.includes(productId);
+                    metTriggers = inCart || inPDP;
+                }
+                return metTotal && metTriggers;
+            });
 
-        if (candidates.length > 0) {
-            renderExperience(candidates[0]); // Solo la mejor prioridad por ahora
+            if (activeOffer) {
+                renderOffer(activeOffer);
+            }
         }
     }
 
-    function renderExperience(camp) {
-        Logger.log('Renderizando experiencia:', camp.name);
-        const { visuals, content, type, logic } = camp;
+    function injectIntoDOM(host) {
+        const target = document.querySelector(ENGINE_CONFIG.selectors.join(','));
+        if (target) target.parentNode.insertBefore(host, target.nextSibling);
+    }
 
+    function renderBundle(bundle) {
+        Logger.log('Renderizando Bundle:', bundle.label);
         const host = document.createElement('div');
         host.className = 'hache-experience-v4';
         const shadow = host.attachShadow({ mode: 'open' });
 
-        const theme = visuals.tokens || { primaryColor: '#4f46e5', borderRadius: 12, backgroundColor: '#fff' };
+        const theme = { primaryColor: '#000', borderRadius: 8, backgroundColor: '#f9f9f9' };
+
+        // Products HTML
+        let productsHtml = '';
+        let itemsToAdd = [];
+        if (bundle.products && bundle.products.length > 0) {
+            bundle.products.forEach(p => {
+                const priceMatch = p.price ? p.price : 0;
+                productsHtml += `<div class="p-item"><img src="${p.image}" width="40" height="40" style="border-radius:4px;object-fit:cover;"> <div class="p-info"><strong>${p.name}</strong> <span>+$${parseFloat(priceMatch).toLocaleString()}</span></div></div>`;
+                if (p.variant_id) itemsToAdd.push({ variantId: p.variant_id, qty: 1 });
+            });
+        }
 
         shadow.innerHTML = `
             <style>
                 :host { display: block; margin: 20px 0; }
-                .card { 
-                    background: ${theme.backgroundColor}; border-radius: ${theme.borderRadius}px;
-                    padding: 20px; border: 1.5px solid ${theme.primaryColor}15;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.05); font-family: system-ui, -apple-system, sans-serif;
-                    display: flex; flex-direction: column; gap: 12px;
-                }
-                .badge { align-self: start; background: ${theme.primaryColor}15; color: ${theme.primaryColor}; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }
-                h3 { margin: 0; font-size: 18px; font-weight: 800; color: #1e293b; }
-                p { margin: 0; font-size: 13px; color: #64748b; line-height: 1.5; }
-                .cta { 
-                    background: ${theme.primaryColor}; color: white; border: none; padding: 14px; 
-                    border-radius: 10px; font-weight: 700; cursor: pointer; transition: transform 0.1s;
-                    text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;
-                }
-                .cta:active { transform: scale(0.97); }
-                .cta:disabled { opacity: 0.6; cursor: not-allowed; }
+                .card { background: ${theme.backgroundColor}; border-radius: ${theme.borderRadius}px; padding: 20px; border: 1px solid #ddd; font-family: system-ui, sans-serif; }
+                h3 { margin: 0 0 15px 0; font-size: 16px; font-weight: 700; color: #111; text-transform:uppercase; letter-spacing:1px; }
+                .p-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+                .p-item { display: flex; align-items: center; gap: 10px; }
+                .p-info { display: flex; flex-direction: column; font-size: 13px; }
+                .p-info span { color: #666; font-size:12px;}
+                .cta { background: ${theme.primaryColor}; color: white; border: none; width: 100%; padding: 14px; border-radius: 6px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; transition: opacity 0.2s;}
+                .cta:hover { opacity:0.8;}
+                .cta:disabled { opacity: 0.5; pointer-events:none;}
             </style>
             <div class="card">
-                ${content.badge ? `<div class="badge">${content.badge}</div>` : ''}
-                <h3>${content.title}</h3>
-                <p>${content.subtitle}</p>
-                <button class="cta" id="go">${content.cta || 'Agregar'}</button>
+                <h3>${bundle.label || 'Llevá también:'}</h3>
+                <div class="p-list">${productsHtml}</div>
+                <button class="cta" id="go">${bundle.ctaText || 'AGREGAR COMBO'}</button>
             </div>
         `;
 
@@ -228,17 +246,9 @@
             const btn = e.target;
             btn.disabled = true;
             btn.innerText = 'PROCESANDO...';
-
-            let itemsToAdd = [];
-            if (type === 'bundle') {
-                itemsToAdd = logic.config.products.map(p => ({ variantId: p.variantId || p.id, qty: 1 }));
-            } else if (type === 'gift') {
-                itemsToAdd = [{ variantId: logic.config.product.variantId || logic.config.product.id, qty: 1 }];
-            }
-
             const success = await HacheCart.addSequential(itemsToAdd);
             if (success) {
-                btn.innerText = '¡LISTO!';
+                btn.innerText = '¡AGREGADO!';
                 setTimeout(() => run(), 2000);
             } else {
                 btn.innerText = 'REINTENTAR';
@@ -246,9 +256,61 @@
             }
         };
 
-        // Placement logic
-        const target = document.querySelector(ENGINE_CONFIG.selectors.join(','));
-        if (target) target.parentNode.insertBefore(host, target.nextSibling);
+        injectIntoDOM(host);
+    }
+
+    function renderOffer(offer) {
+        Logger.log('Renderizando Oferta:', offer.title);
+        const host = document.createElement('div');
+        host.className = 'hache-experience-v4';
+        const shadow = host.attachShadow({ mode: 'open' });
+
+        const theme = { primaryColor: '#000', borderRadius: 8, backgroundColor: offer.style === 'dark' ? '#111' : '#fff', textColor: offer.style === 'dark' ? '#fff' : '#111' };
+        const op = offer.offerProduct;
+        if (!op) return;
+
+        shadow.innerHTML = `
+            <style>
+                :host { display: block; margin: 20px 0; }
+                .card { background: ${theme.backgroundColor}; color: ${theme.textColor}; border-radius: ${theme.borderRadius}px; padding: 15px; border: 2px dashed #ddd; font-family: system-ui, sans-serif; display:flex; flex-direction:column; gap:10px; }
+                .badge { align-self: start; background: #eab308; color: #000; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+                h3 { margin: 0; font-size: 14px; font-weight: 800; text-transform:uppercase;}
+                .prod-row { display:flex; gap:15px; align-items:center; }
+                .prod-info { flex:1; display:flex; flex-direction:column; }
+                .prod-name { font-size: 14px; font-weight:600;}
+                .prod-price { font-size: 13px; color: ${offer.style === 'dark' ? '#ccc' : '#666'};}
+                .cta { background: ${theme.primaryColor}; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; }
+                .cta:disabled { opacity: 0.5; }
+            </style>
+            <div class="card">
+                ${offer.badge ? `<div class="badge">${offer.badge}</div>` : ''}
+                <h3>${offer.title || 'Te recomendamos'}</h3>
+                <div class="prod-row">
+                    <img src="${op.image}" width="60" height="60" style="border-radius:6px;object-fit:cover;">
+                    <div class="prod-info">
+                        <span class="prod-name">${op.name}</span>
+                        <span class="prod-price">$${parseFloat(op.price || 0).toLocaleString()}</span>
+                    </div>
+                    <button class="cta" id="go">SUMAR</button>
+                </div>
+            </div>
+        `;
+
+        shadow.getElementById('go').onclick = async (e) => {
+            const btn = e.target;
+            btn.disabled = true;
+            btn.innerText = '...';
+            const success = await HacheCart.addSequential([{ variantId: op.variant_id, qty: 1 }]);
+            if (success) {
+                btn.innerText = '✓';
+                setTimeout(() => run(), 2000);
+            } else {
+                btn.innerText = 'SUMAR';
+                btn.disabled = false;
+            }
+        };
+
+        injectIntoDOM(host);
     }
 
     // Event Listeners
