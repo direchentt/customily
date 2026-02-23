@@ -5,8 +5,8 @@ const SidebarItem = ({ id, icon: Icon, label, activeTab, setActiveTab }) => (
     <button
         onClick={() => setActiveTab(id)}
         className={`w-full flex items-center px-4 py-3.5 mb-2 text-sm font-semibold rounded-xl transition-all ${activeTab === id
-                ? 'bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-100 border border-indigo-100'
-                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-transparent'
+            ? 'bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-100 border border-indigo-100'
+            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-transparent'
             }`}
     >
         <Icon className={`w-5 h-5 mr-3 transition-colors ${activeTab === id ? 'text-indigo-600' : 'text-slate-400'}`} />
@@ -35,6 +35,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                 <p className="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-5 mt-8 border-t border-slate-100 pt-6">Configuración</p>
                 <SidebarItem id="shipping" icon={Truck} label="Barra Envíos" activeTab={activeTab} setActiveTab={setActiveTab} />
                 <SidebarItem id="gifts" icon={Gift} label="Regalos" activeTab={activeTab} setActiveTab={setActiveTab} />
+                <SidebarItem id="diagnostics" icon={Zap} label="Diagnóstico" activeTab={activeTab} setActiveTab={setActiveTab} />
             </div>
         </div>
     );

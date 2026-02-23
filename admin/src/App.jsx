@@ -5,6 +5,7 @@ import Header from './components/layout/Header';
 import Dashboard from './pages/Dashboard';
 import Bundles from './pages/Bundles';
 import Offers from './pages/Offers';
+import Diagnostics from './pages/Diagnostics';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 
 const AdminShell = () => {
@@ -38,6 +39,16 @@ const AdminShell = () => {
 
     if (!config) return null;
 
+    if (!config.general?.storeId) {
+        return (
+            <div className="h-screen w-screen bg-slate-50 flex flex-col items-center justify-center text-slate-900 font-sans p-10">
+                <AlertCircle className="mb-4 text-orange-500 w-12 h-12" />
+                <h2 className="text-2xl font-bold mb-2">Conectá tu tienda</h2>
+                <p className="text-slate-500 mb-6 text-center max-w-sm">No se detectó un storeId activo. Por favor, ingresá desde Tiendanube o configurá el ID manualmente para continuar.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex antialiased">
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -47,6 +58,7 @@ const AdminShell = () => {
                     {activeTab === 'dashboard' && <Dashboard />}
                     {activeTab === 'bundles' && <Bundles />}
                     {activeTab === 'offers' || activeTab === 'shipping' || activeTab === 'gifts' ? <Offers /> : null}
+                    {activeTab === 'diagnostics' && <Diagnostics />}
                 </main>
             </div>
         </div>

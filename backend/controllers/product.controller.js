@@ -3,8 +3,23 @@ import { TiendanubeService } from '../services/tiendanube.service.js';
 export const ProductController = {
     async getProducts(req, res) {
         try {
-            const products = await TiendanubeService.getProducts();
-            res.json(products);
+            const allProducts = await TiendanubeService.getProducts();
+
+            const limit = parseInt(req.query.limit, 10) || 50;
+            const page = parseInt(req.query.page, 10) || 1;
+
+            const total = allProducts.length;
+            const totalPages = Math.ceil(total / limit);
+            const offset = (page - 1) * limit;
+
+            const products = allProducts.slice(offset, offset + limit);
+
+            res.json({
+                products,
+                total,
+                page,
+                totalPages
+            });
         } catch (error) {
             console.error("❌ Error API Products:", error.message);
             res.status(500).json({ error: "Fallo al obtener productos" });

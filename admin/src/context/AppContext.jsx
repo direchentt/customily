@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { configAPI, productsAPI } from '../api/client';
+import { configAPI, productsAPI, getStoreId } from '../api/client';
 
 const AppContext = createContext({
     loading: true,
@@ -31,13 +31,21 @@ export const AppProvider = ({ children }) => {
             setLoading(true);
             setError(null);
 
+            const storeId = getStoreId();
+            if (!storeId) {
+                setConfig({ general: { storeId: null } });
+                setLoading(false);
+                isFetchingRef.current = false;
+                return;
+            }
+
             const [configRes, productsRes, categoriesRes] = await Promise.all([
                 configAPI.get(),
                 productsAPI.getAll(),
                 productsAPI.getCategories(),
             ]);
 
-            console.log("✅ Data received:", { config: !!configRes.data, products: productsRes.data?.length });
+            console.log("✅ Data received:", { config: !!configRes.data, products: productsRes.data?.products?.length });
 
             let c = configRes.data;
             if (!c) throw new Error("Config not found");
@@ -49,7 +57,7 @@ export const AppProvider = ({ children }) => {
             if (c.modules === undefined) c.modules = { offersEnabled: true, bundlesEnabled: true };
 
             setConfig(c);
-            setProducts(productsRes.data || []);
+            setProducts(productsRes.data?.products || []);
             setCategories(categoriesRes.data || []);
             setLoading(false);
             retryCountRef.current = 0;

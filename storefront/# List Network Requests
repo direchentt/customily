@@ -1,0 +1,51 @@
+# List Network Requests
+
+| reqid | method | url | status |
+|---|---|---|---|
+| 572 | GET | https://www.hachedhe.com.ar/productos/?sort_by=newest&results_only=true | success - 200 |
+| 578 | GET | https://vimeo.com/api/v2/video/1118162398.json | success - 200 |
+| 579 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 580 | POST | https://www.hachedhe.com.ar/cart/save_shipping/ | success - 200 |
+| 617 | POST | https://www.hachedhe.com.ar/cdn-cgi/rum? | success - 204 |
+| 622 | POST | https://api.cashing.com.br/store | success - 200 |
+| 626 | GET | https://static.cashing.com.br/lang/es.json?v=1.0.0 | success - 200 |
+| 627 | POST | https://api.cashing.com.br/api/buy_together | success - 200 |
+| 630 | POST | https://app.cashing.com.br/api/v2/offers/list | success - 200 |
+| 631 | POST | https://app.cashing.com.br/api/v2/offers/list | success - 200 |
+| 639 | GET | https://ns-b2b.api-huapps.com.br/pub/forms?_=1771722640058 | success - 200 |
+| 641 | GET | https://ns-b2b.api-huapps.com.br/pub/group-roles?user_id=&_=1771722640059 | success - 200 |
+| 643 | GET | https://salesbooster-hachedhe.onrender.com/api/config?t=1771722640062 | pending |
+| 644 | POST | https://www.hachedhe.com.ar/cart/update/ | success - 200 |
+| 645 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 646 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 647 | POST | https://www.hachedhe.com.ar/cart/update/ | success - 200 |
+| 648 | POST | https://www.hachedhe.com.ar/cart/save_shipping/ | success - 200 |
+| 649 | POST | https://www.hachedhe.com.ar/cart/update/ | success - 200 |
+| 650 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 651 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 652 | POST | https://www.hachedhe.com.ar/cart/save_shipping/ | success - 200 |
+| 653 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 654 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 655 | POST | https://www.hachedhe.com.ar/cart/save_shipping/ | success - 200 |
+| 656 | POST | https://www.hachedhe.com.ar/cart/update/ | success - 200 |
+| 657 | POST | https://www.hachedhe.com.ar/cart/save_shipping/ | success - 200 |
+| 658 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 659 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 660 | POST | https://www.hachedhe.com.ar/cart/save_shipping/ | success - 200 |
+| 661 | POST | https://www.hachedhe.com.ar/cart/save_shipping/ | success - 200 |
+| 676 | GET | https://www.hachedhe.com.ar/productos/?sort_by=newest&results_only=true | success - 200 |
+| 685 | GET | https://vimeo.com/api/v2/video/1118162398.json | success - 200 |
+| 691 | GET | https://ns-b2b.api-huapps.com.br/pub/forms?_=1771722651176 | success - 200 |
+| 692 | GET | https://ns-b2b.api-huapps.com.br/pub/group-roles?user_id=&_=1771722651177 | success - 200 |
+| 695 | GET | https://salesbooster-hachedhe.onrender.com/api/config?t=1771722651189 | success - 200 |
+| 697 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 701 | POST | https://www.hachedhe.com.ar/cdn-cgi/rum? | success - 204 |
+| 717 | POST | https://api.cashing.com.br/store | success - 200 |
+| 737 | GET | https://static.cashing.com.br/lang/es.json?v=1.0.0 | success - 200 |
+| 738 | POST | https://api.cashing.com.br/api/buy_together | success - 200 |
+| 741 | POST | https://app.cashing.com.br/api/v2/offers/list | success - 200 |
+| 742 | POST | https://app.cashing.com.br/api/v2/offers/list | success - 200 |
+| 761 | POST | https://www.hachedhe.com.ar/comprar/ | success - 200 |
+| 764 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 765 | POST | https://www.hachedhe.com.ar/envio/ | success - 200 |
+| 766 | POST | https://www.hachedhe.com.ar/cart/save_shipping/ | success - 200 |

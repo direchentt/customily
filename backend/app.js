@@ -9,8 +9,8 @@ export const app = express();
 
 app.use(cors({
     origin: ENV.CORS_ORIGINS,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-store-id']
 }));
 app.use(express.json());
 

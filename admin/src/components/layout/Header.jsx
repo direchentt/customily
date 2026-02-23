@@ -11,6 +11,7 @@ const Header = ({ activeTab }) => {
         gifts: 'Regalo Automático',
         offers: 'Ofertas Emergentes',
         bundles: 'Packs "Comprados Juntos"',
+        diagnostics: 'Diagnóstico del Sistema',
     };
 
     const subtitles = {
@@ -19,6 +20,7 @@ const Header = ({ activeTab }) => {
         gifts: 'Regalá un producto sorpresa.',
         offers: 'Construye pop ups irresistibles.',
         bundles: 'Sugiere productos debajo del carrito.',
+        diagnostics: 'Estado de conexión técnica de Hache Suite.',
     };
 
     return (
