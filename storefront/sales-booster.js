@@ -128,7 +128,7 @@
             // 2. Load Config (with local fallback)
             let config;
             try {
-                const res = await fetch(`${ENGINE_CONFIG.apiBase}/campaigns`, {
+                const res = await fetch(`${ENGINE_CONFIG.apiBase}/config`, {
                     headers: { 'x-store-id': storeId },
                     signal: AbortSignal.timeout(5000)
                 });
